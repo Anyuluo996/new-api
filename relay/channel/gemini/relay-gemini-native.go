@@ -77,6 +77,13 @@ func NativeGeminiEmbeddingHandler(c *gin.Context, resp *http.Response, info *rel
 		}
 	}
 
+	// 上游会返回 usageMetadata（图片 part 本地 tokenizer 无法计数，估计值恒为 0），
+	// 有值时优先采用，缺失（如 batchEmbedContents）时保留本地估算
+	if pt := gjson.GetBytes(responseBody, "usageMetadata.promptTokenCount").Int(); pt > 0 {
+		usage.PromptTokens = int(pt)
+		usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
+	}
+
 	service.IOCopyBytesGracefully(c, resp, responseBody)
 
 	return usage, nil
