@@ -238,9 +238,13 @@ func InitLogDB() (err error) {
 		common.SetLogDatabaseType(common.MainDatabaseType())
 		initCol()
 		if common.IsMasterNode {
-			return MigrateAuditLogs()
+			if err := MigrateAuditLogs(); err != nil {
+				return err
+			}
+			// Fork: 未配独立日志库时 RequestDetail 挂在主库,需在此迁移
+			return DB.AutoMigrate(&RequestDetail{})
 		}
-		return
+		return nil
 	}
 	db, dbType, err := chooseDB("LOG_SQL_DSN", true)
 	if err == nil {
