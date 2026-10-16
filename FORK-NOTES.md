@@ -1,8 +1,8 @@
 # Fork 说明(自用构建)
 
 上游: https://github.com/QuantumNous/new-api
-基础标签: `v1.0.0-rc.40`(与 wo4 部署版本一致)
-分支: `custom/rc40-gemini-embed-usage`
+基础标签: `v1.0.0-rc.44`(与 wo4 部署版本一致)
+分支: `custom/rc44-gemini-embed-usage`
 
 ## 改动内容
 
@@ -14,7 +14,7 @@
 ## 构建与部署
 
 - 推送 `custom/**` 分支或手动触发 `Build custom image` workflow
-- 产物: `ghcr.io/anyuluo996/new-api:rc40-gemini-embed-usage` + Release 附件镜像 tar.gz(docker load 兜底)
+- 产物: `ghcr.io/anyuluo996/new-api:rc44-gemini-embed-usage` + Release 附件镜像 tar.gz(docker load 兜底)
 - wo4: `/root/new-api/docker-compose.yml` 的 image 字段指向上述镜像
 
 ## 升级到新上游版本时
