@@ -38,6 +38,13 @@ export interface RequestDetail {
   status_code: number
   use_time: number
   truncated: boolean
+  /** 精细耗时(ms):总耗时 / 首次响应 / 上游请求 */
+  use_time_ms?: number
+  first_response_ms?: number
+  upstream_ms?: number
+  /** token 用量来自同 request_id 的消费日志,无关联日志时为 0 */
+  prompt_tokens?: number
+  completion_tokens?: number
 }
 
 /** 单条完整记录,含请求体/响应体 */

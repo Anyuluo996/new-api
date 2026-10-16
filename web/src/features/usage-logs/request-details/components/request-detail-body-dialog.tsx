@@ -28,6 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { getRequestDetailBody, type RequestDetail } from '../api'
+import { formatDurationMs, formatThroughput } from '../lib/format'
 
 function BodyPanel(props: { title: string; body: string }) {
   return (
@@ -50,6 +51,48 @@ function formatBody(raw: string) {
   } catch {
     return raw
   }
+}
+
+function MetricItem(props: { label: string; value: string }) {
+  return (
+    <div className='bg-muted/50 min-w-0 rounded-md px-2 py-1.5'>
+      <div className='text-muted-foreground text-[11px] leading-tight'>
+        {props.label}
+      </div>
+      <div className='truncate font-mono text-xs font-medium tabular-nums'>
+        {props.value}
+      </div>
+    </div>
+  )
+}
+
+function MetricsPanel(props: { entry: RequestDetail }) {
+  const { t } = useTranslation()
+  const e = props.entry
+  const useTimeMs = e.use_time_ms ?? (e.use_time > 0 ? e.use_time * 1000 : 0)
+  const promptTokens = e.prompt_tokens ?? 0
+  const completionTokens = e.completion_tokens ?? 0
+  const items = [
+    { label: t('Total Duration'), value: formatDurationMs(useTimeMs) },
+    { label: t('First Response'), value: formatDurationMs(e.first_response_ms) },
+    { label: t('Upstream Duration'), value: formatDurationMs(e.upstream_ms) },
+    {
+      label: t('Throughput'),
+      value: formatThroughput(completionTokens, useTimeMs),
+    },
+    { label: t('Prompt Tokens'), value: promptTokens ? String(promptTokens) : '-' },
+    {
+      label: t('Completion Tokens'),
+      value: completionTokens ? String(completionTokens) : '-',
+    },
+  ]
+  return (
+    <div className='grid grid-cols-2 gap-2 sm:grid-cols-3'>
+      {items.map((item) => (
+        <MetricItem key={item.label} label={item.label} value={item.value} />
+      ))}
+    </div>
+  )
 }
 
 export function RequestDetailBodyDialog(props: { entry: RequestDetail }) {
@@ -94,6 +137,7 @@ export function RequestDetailBodyDialog(props: { entry: RequestDetail }) {
             </span>
           )}
         </div>
+        <MetricsPanel entry={query.data} />
         <BodyPanel
           title={t('Request Body')}
           body={formatBody(query.data.request_body)}

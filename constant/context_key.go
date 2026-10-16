@@ -10,6 +10,9 @@ const (
 	ContextKeyOriginalModel    ContextKey = "original_model"
 	ContextKeyRequestStartTime ContextKey = "request_start_time"
 
+	// Fork: 请求详情日志——上游请求耗时(毫秒,由 DoApiRequest 打点,重试时为最后一次)
+	ContextKeyUpstreamLatencyMs ContextKey = "upstream_latency_ms"
+
 	/* token related keys */
 	ContextKeyTokenUnlimited         ContextKey = "token_unlimited_quota"
 	ContextKeyTokenKey               ContextKey = "token_key"

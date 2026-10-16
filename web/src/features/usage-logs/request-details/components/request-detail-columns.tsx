@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge'
 import dayjs from '@/lib/dayjs'
 
 import type { RequestDetail } from '../api'
+import { formatDurationMs } from '../lib/format'
 import { RequestDetailBodyDialog } from './request-detail-body-dialog'
 
 export function useRequestDetailColumns(): ColumnDef<RequestDetail>[] {
@@ -119,13 +120,30 @@ export function useRequestDetailColumns(): ColumnDef<RequestDetail>[] {
       {
         accessorKey: 'use_time',
         header: t('Duration'),
-        size: 80,
+        size: 90,
         cell: ({ row }) => (
           <span className='font-mono tabular-nums'>
-            {row.original.use_time}s
+            {formatDurationMs(row.original.use_time_ms ?? (row.original.use_time > 0 ? row.original.use_time * 1000 : null))}
           </span>
         ),
         meta: { label: t('Duration') },
+      },
+      {
+        accessorKey: 'completion_tokens',
+        header: t('Tokens'),
+        size: 110,
+        cell: ({ row }) => {
+          const { prompt_tokens, completion_tokens } = row.original
+          if (!prompt_tokens && !completion_tokens) {
+            return <span>-</span>
+          }
+          return (
+            <span className='font-mono tabular-nums' title={`${t('Prompt Tokens')} ${prompt_tokens ?? 0} / ${t('Completion Tokens')} ${completion_tokens ?? 0}`}>
+              {prompt_tokens ?? 0}/{completion_tokens ?? 0}
+            </span>
+          )
+        },
+        meta: { label: t('Tokens') },
       },
       {
         id: 'actions',

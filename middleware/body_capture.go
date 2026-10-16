@@ -17,12 +17,16 @@ import (
 // 用于请求详情日志。所有内嵌方法原样转发,SSE Flush/Hijack 不受影响。
 type detailCaptureWriter struct {
 	gin.ResponseWriter
-	buf       bytes.Buffer
-	maxBytes  int
-	truncated bool
+	buf        bytes.Buffer
+	maxBytes   int
+	truncated  bool
+	firstWrite time.Time
 }
 
 func (w *detailCaptureWriter) Write(b []byte) (int, error) {
+	if w.firstWrite.IsZero() {
+		w.firstWrite = time.Now()
+	}
 	if w.buf.Len() < w.maxBytes {
 		remaining := w.maxBytes - w.buf.Len()
 		if len(b) <= remaining {
@@ -92,6 +96,11 @@ func RequestDetailCapture() gin.HandlerFunc {
 
 		requestBody, requestTruncated := detailReadRequestBody(c, maxBytes)
 		contentType := cw.Header().Get("Content-Type")
+		now := time.Now()
+		var firstResponseMs int64
+		if !cw.firstWrite.IsZero() {
+			firstResponseMs = cw.firstWrite.Sub(start).Milliseconds()
+		}
 		detail := &model.RequestDetail{
 			CreatedAt:    common.GetTimestamp(),
 			RequestId:    c.GetString(common.RequestIdKey),
@@ -103,10 +112,14 @@ func RequestDetailCapture() gin.HandlerFunc {
 			Endpoint:     c.Request.URL.Path,
 			IsStream:     strings.Contains(contentType, "text/event-stream"),
 			StatusCode:   cw.Status(),
-			UseTime:      int(time.Since(start).Seconds()),
+			UseTime:      int(now.Sub(start).Seconds()),
 			RequestBody:  requestBody,
 			ResponseBody: cw.buf.String(),
 			Truncated:    cw.truncated || requestTruncated,
+			// Fork: 精细耗时指标;上游耗时由 DoApiRequest 打点(重试取最后一次)
+			UseTimeMs:       now.Sub(start).Milliseconds(),
+			FirstResponseMs: firstResponseMs,
+			UpstreamMs:      int64(common.GetContextKeyInt(c, constant.ContextKeyUpstreamLatencyMs)),
 		}
 		go model.RecordRequestDetail(detail)
 	}

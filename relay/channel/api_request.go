@@ -12,6 +12,7 @@ import (
 	"time"
 
 	common2 "github.com/QuantumNous/new-api/common"
+	rootconstant "github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/constant"
@@ -333,7 +334,10 @@ func DoApiRequest(a Adaptor, c *gin.Context, info *common.RelayInfo, requestBody
 		return nil, err
 	}
 	applyHeaderOverrideToRequest(req, headerOverride)
+	upstreamStart := time.Now()
 	resp, err := doRequest(c, req, info)
+	// Fork: 记录上游耗时(ms)供请求详情中间件读取;渠道重试时覆盖为最后一次
+	c.Set(string(rootconstant.ContextKeyUpstreamLatencyMs), int(time.Since(upstreamStart).Milliseconds()))
 	if err != nil {
 		return nil, fmt.Errorf("do request failed: %w", err)
 	}
@@ -365,7 +369,10 @@ func DoFormRequest(a Adaptor, c *gin.Context, info *common.RelayInfo, requestBod
 		return nil, err
 	}
 	applyHeaderOverrideToRequest(req, headerOverride)
+	upstreamStart := time.Now()
 	resp, err := doRequest(c, req, info)
+	// Fork: 记录上游耗时(ms)供请求详情中间件读取;渠道重试时覆盖为最后一次
+	c.Set(string(rootconstant.ContextKeyUpstreamLatencyMs), int(time.Since(upstreamStart).Milliseconds()))
 	if err != nil {
 		return nil, fmt.Errorf("do request failed: %w", err)
 	}

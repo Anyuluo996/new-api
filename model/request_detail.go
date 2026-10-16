@@ -28,6 +28,13 @@ type RequestDetail struct {
 	RequestBody  string `json:"request_body"`
 	ResponseBody string `json:"response_body"`
 	Truncated    bool   `json:"truncated"`
+	// Fork: 精细耗时指标(毫秒)。UseTime 保留旧秒精度字段兼容,新数据以 *_ms 为准
+	UseTimeMs       int64 `json:"use_time_ms" gorm:"default:0"`
+	FirstResponseMs int64 `json:"first_response_ms" gorm:"default:0"`
+	UpstreamMs      int64 `json:"upstream_ms" gorm:"default:0"`
+	// token 用量来自同 request_id 的消费日志,只读 join 字段,不落库
+	PromptTokens     int `json:"prompt_tokens" gorm:"->"`
+	CompletionTokens int `json:"completion_tokens" gorm:"->"`
 }
 
 // RecordRequestDetail 落库,调用方需在 gin 上下文销毁前构造好完整结构体(可安全异步调用)。
@@ -57,28 +64,41 @@ type RequestDetailFilter struct {
 func buildRequestDetailQuery(filter RequestDetailFilter) *gorm.DB {
 	tx := LOG_DB.Model(&RequestDetail{})
 	if filter.RequestId != "" {
-		tx = tx.Where("request_id = ?", filter.RequestId)
+		tx = tx.Where("request_details.request_id = ?", filter.RequestId)
 	}
 	if filter.UserId != 0 {
-		tx = tx.Where("user_id = ?", filter.UserId)
+		tx = tx.Where("request_details.user_id = ?", filter.UserId)
 	}
 	if filter.TokenName != "" {
-		tx = tx.Where("token_name = ?", filter.TokenName)
+		tx = tx.Where("request_details.token_name = ?", filter.TokenName)
 	}
 	if filter.ChannelId != 0 {
-		tx = tx.Where("channel_id = ?", filter.ChannelId)
+		tx = tx.Where("request_details.channel_id = ?", filter.ChannelId)
 	}
 	if filter.ModelName != "" {
-		tx = tx.Where("model_name = ?", filter.ModelName)
+		tx = tx.Where("request_details.model_name = ?", filter.ModelName)
 	}
 	if filter.StartTimestamp != 0 {
-		tx = tx.Where("created_at >= ?", filter.StartTimestamp)
+		tx = tx.Where("request_details.created_at >= ?", filter.StartTimestamp)
 	}
 	if filter.EndTimestamp != 0 {
-		tx = tx.Where("created_at <= ?", filter.EndTimestamp)
+		tx = tx.Where("request_details.created_at <= ?", filter.EndTimestamp)
 	}
 	return tx
 }
+
+// requestDetailLogJoin 关联同 request_id 的消费日志取 token 用量。
+// RequestDetail 与 Log 同在 LOG_DB,join 成立;ClickHouse 日志库不支持此表(写入已短路)。
+const requestDetailLogJoin = "LEFT JOIN logs ON logs.request_id = request_details.request_id AND logs.type = ?"
+
+// requestDetailListColumns 列表查询列(不含 body 正文,控制页重);
+// token 用量来自同 request_id 的消费日志。
+const requestDetailListColumns = "request_details.id, request_details.created_at, request_details.request_id, " +
+	"request_details.user_id, request_details.username, request_details.token_id, request_details.token_name, " +
+	"request_details.channel_id, request_details.model_name, request_details.endpoint, request_details.is_stream, " +
+	"request_details.status_code, request_details.use_time, request_details.truncated, " +
+	"request_details.use_time_ms, request_details.first_response_ms, request_details.upstream_ms, " +
+	"IFNULL(MAX(logs.prompt_tokens), 0) AS prompt_tokens, IFNULL(MAX(logs.completion_tokens), 0) AS completion_tokens"
 
 // GetAllRequestDetails 分页列出详情记录;列表不含 body,正文用 GetRequestDetailBody 单独取。
 func GetAllRequestDetails(filter RequestDetailFilter, startIdx int, num int) ([]*RequestDetail, int64, error) {
@@ -88,7 +108,13 @@ func GetAllRequestDetails(filter RequestDetailFilter, startIdx int, num int) ([]
 	if err := tx.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := tx.Omit("request_body", "response_body").Order("id desc").Limit(num).Offset(startIdx).Find(&details).Error
+	err := tx.
+		Select(requestDetailListColumns).
+		Joins(requestDetailLogJoin, LogTypeConsume).
+		Group("request_details.id").
+		Order("request_details.id desc").
+		Limit(num).Offset(startIdx).
+		Find(&details).Error
 	return details, total, err
 }
 
@@ -97,7 +123,11 @@ func GetRequestDetailBody(id int) (*RequestDetail, error) {
 		return nil, errors.New("id is required")
 	}
 	var detail RequestDetail
-	err := LOG_DB.First(&detail, "id = ?", id).Error
+	err := LOG_DB.
+		Select("request_details.*, IFNULL(MAX(logs.prompt_tokens), 0) AS prompt_tokens, IFNULL(MAX(logs.completion_tokens), 0) AS completion_tokens").
+		Joins(requestDetailLogJoin, LogTypeConsume).
+		Group("request_details.id").
+		First(&detail, "request_details.id = ?", id).Error
 	return &detail, err
 }
 
