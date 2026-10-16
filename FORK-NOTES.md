@@ -15,9 +15,9 @@
 
 记录每次 relay 请求的完整请求体/响应体,通过 `request_id` 与消费日志(`Log` 表)关联。
 
-- **模型/落库**: `model/request_detail.go` — `RequestDetail` 表(挂日志库,ClickHouse 日志库不支持);列表接口不含 body,正文按 id 单取
+- **模型/落库**: `model/request_detail.go` — `RequestDetail` 表(挂日志库,ClickHouse 日志库不支持);列表接口不含 body,正文按 id 单取;含精细耗时指标 `use_time_ms`/`first_response_ms`/`upstream_ms`(上游耗时由 `DoApiRequest`/`DoFormRequest` 打点写入 context,重试取最后一次),token 用量查询时 LEFT JOIN 同 request_id 消费日志(`gorm:"->"` 只读字段,不落库)
 - **捕获**: `middleware/body_capture.go` — 包一层 `c.Writer` 截留响应体(流式 SSE 原文),请求体从 BodyStorage/原始流限量读;挂载于 `/v1` HTTP relay、`/pg` playground、`/v1beta` gemini 原生(不含 `/mj`、WS、task plugin 协议路由)
-- **开关**(运营设置 option 表,默认关):
+- **开关**(运营设置 → 日志维护页有 UI;默认关):
   - `DetailLogEnabled` — 总开关
   - `DetailLogMaxBodyKB` — 单侧截断上限,默认 64KB,超出置 `truncated=true`
   - `DetailLogRetentionDays` — 保留天数,默认 7;`0` 永不自动清;随"日志清理"系统任务执行
