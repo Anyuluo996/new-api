@@ -21,6 +21,7 @@ import {
   Box,
   ClipboardList,
   CreditCard,
+  FileSearch,
   FileText,
   FlaskConical,
   Key,
@@ -97,6 +98,12 @@ export function useSidebarData(): SidebarData {
             title: t('Audit Logs'),
             url: '/usage-logs/audit',
             icon: ClipboardList,
+          },
+          {
+            title: t('Request Details'),
+            url: '/usage-logs/details',
+            icon: FileSearch,
+            requiredRole: ROLE.ADMIN,
           },
           {
             title: t('Task Logs'),

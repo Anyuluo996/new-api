@@ -24,6 +24,7 @@
 - **查询 API**(仅管理员,access-token scope `log:read`):
   - `GET /api/request_detail/?request_id=&user_id=&channel_id=&model_name=&token_name=&start_timestamp=&end_timestamp=&p=&page_size=`
   - `GET /api/request_detail/:id` — 含完整请求/响应体
+- **WebUI**: 侧边栏「使用日志」分组 → 「请求详情」(`RequiredRole ADMIN`),`/usage-logs/details`;feature 代码在 `web/src/features/usage-logs/request-details/`,列表 + 筛选(模型/渠道/用户/令牌/请求 ID/时间)+ 详情弹窗(JSON 美化 + 复制);侧边栏显隐跟随「通用日志」模块配置
 - **注意**: 内容为明文 prompt/回复,体量约每请求 KB 级 × 全部 relay 流量,开启前评估磁盘;表格随启动 AutoMigrate 自动建
 
 ## 构建与部署
