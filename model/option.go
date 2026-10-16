@@ -51,6 +51,9 @@ func InitOptionMap() {
 	common.OptionMap["AutomaticDisableChannelEnabled"] = strconv.FormatBool(common.AutomaticDisableChannelEnabled)
 	common.OptionMap["AutomaticEnableChannelEnabled"] = strconv.FormatBool(common.AutomaticEnableChannelEnabled)
 	common.OptionMap["LogConsumeEnabled"] = strconv.FormatBool(common.LogConsumeEnabled)
+	common.OptionMap["DetailLogEnabled"] = strconv.FormatBool(common.DetailLogEnabled)
+	common.OptionMap["DetailLogMaxBodyKB"] = strconv.Itoa(common.DetailLogMaxBodyKB)
+	common.OptionMap["DetailLogRetentionDays"] = strconv.Itoa(common.DetailLogRetentionDays)
 	common.OptionMap["DisplayInCurrencyEnabled"] = strconv.FormatBool(common.DisplayInCurrencyEnabled)
 	common.OptionMap["DisplayTokenStatEnabled"] = strconv.FormatBool(common.DisplayTokenStatEnabled)
 	common.OptionMap["DrawingEnabled"] = strconv.FormatBool(common.DrawingEnabled)
@@ -406,6 +409,8 @@ func updateOptionMap(key string, value string) (err error) {
 			common.AutomaticEnableChannelEnabled = boolValue
 		case "LogConsumeEnabled":
 			common.LogConsumeEnabled = boolValue
+		case "DetailLogEnabled":
+			common.DetailLogEnabled = boolValue
 		case "DisplayInCurrencyEnabled":
 			// 兼容旧字段：同步到新配置 general_setting.quota_display_type（运行时生效）
 			// true -> USD, false -> TOKENS
@@ -512,6 +517,16 @@ func updateOptionMap(key string, value string) (err error) {
 		operation_setting.USDExchangeRate, _ = strconv.ParseFloat(value, 64)
 	case "MinTopUp":
 		operation_setting.MinTopUp, _ = strconv.Atoi(value)
+	case "DetailLogMaxBodyKB":
+		common.DetailLogMaxBodyKB, _ = strconv.Atoi(value)
+		if common.DetailLogMaxBodyKB <= 0 {
+			common.DetailLogMaxBodyKB = 64
+		}
+	case "DetailLogRetentionDays":
+		common.DetailLogRetentionDays, _ = strconv.Atoi(value)
+		if common.DetailLogRetentionDays < 0 {
+			common.DetailLogRetentionDays = 0
+		}
 	case "StripeApiSecret":
 		setting.StripeApiSecret = value
 	case "StripeWebhookSecret":

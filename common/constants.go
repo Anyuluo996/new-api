@@ -98,6 +98,11 @@ var MemoryCacheEnabled bool
 
 var LogConsumeEnabled = true
 
+// Fork: 请求详情日志(记录每次 relay 请求的完整请求体/响应体)
+var DetailLogEnabled = false
+var DetailLogMaxBodyKB = 64
+var DetailLogRetentionDays = 7
+
 var TLSInsecureSkipVerify bool
 var InsecureTLSConfig = &tls.Config{InsecureSkipVerify: true}
 

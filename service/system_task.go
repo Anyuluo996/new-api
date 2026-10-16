@@ -419,9 +419,35 @@ func runLogCleanupTask(ctx context.Context, task *model.SystemTask, runnerID str
 		return
 	}
 
+	cleanupRequestDetails(ctx)
+
 	result := LogCleanupResult{DeletedCount: state.Processed}
 	if err := model.FinishSystemTask(task.TaskID, runnerID, model.SystemTaskStatusSucceeded, result, ""); err != nil {
 		logSystemTaskLockError(ctx, task, err)
+	}
+}
+
+// cleanupRequestDetails 日志清理任务顺带按保留天数清理请求详情日志(Fork)。
+// 清理失败不影响日志清理任务本身的结果。
+func cleanupRequestDetails(ctx context.Context) {
+	if common.DetailLogRetentionDays <= 0 {
+		return
+	}
+	cutoff := common.GetTimestamp() - int64(common.DetailLogRetentionDays)*24*3600
+	deleted := int64(0)
+	for {
+		rows, err := model.DeleteOldRequestDetailBatch(ctx, cutoff, logCleanupBatchSize)
+		if err != nil {
+			common.SysError(common.LogText("failed to cleanup request details: %s", err.Error()))
+			return
+		}
+		deleted += rows
+		if rows < int64(logCleanupBatchSize) {
+			break
+		}
+	}
+	if deleted > 0 {
+		common.SysLog(common.LogText("cleaned %d expired request details", deleted))
 	}
 }
 

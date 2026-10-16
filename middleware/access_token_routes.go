@@ -249,6 +249,10 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"GET /api/data/flow":                        accessTokenScopeRule("log:read"),
 	"GET /api/data/flow/self":                   accessTokenScopeRule("usage:read"),
 
+	// router/api-router.go: /api/request_detail (Fork: 请求详情日志)
+	"GET /api/request_detail/":    accessTokenScopeRule("log:read"),
+	"GET /api/request_detail/:id": accessTokenScopeRule("log:read"),
+
 	// router/api-router.go: /api/group, /api/prefill_group
 	"GET /api/group/":               accessTokenScopeRule("group:read"),
 	"GET /api/prefill_group/":       accessTokenScopeRule("group:read"),

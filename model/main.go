@@ -408,7 +408,8 @@ func migrateLOGDB() error {
 	if common.UsingLogDatabase(common.DatabaseTypeClickHouse) {
 		return migrateClickHouseLogDB()
 	}
-	return LOG_DB.AutoMigrate(&Log{})
+	// Fork: RequestDetail 是 fork 自有表,随日志库一起迁移
+	return LOG_DB.AutoMigrate(&Log{}, &RequestDetail{})
 }
 
 func migrateClickHouseLogDB() error {
