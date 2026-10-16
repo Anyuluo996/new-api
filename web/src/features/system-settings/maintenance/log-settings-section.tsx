@@ -50,6 +50,9 @@ import { ServerLogFiles } from './server-log-files'
 
 const logSettingsSchema = z.object({
   LogConsumeEnabled: z.boolean(),
+  DetailLogEnabled: z.boolean(),
+  DetailLogMaxBodyKB: z.number().int().min(1),
+  DetailLogRetentionDays: z.number().int().min(0),
   log_setting: z.object({
     user_export_enabled: z.boolean(),
     max_range_days: z.number().int().min(1),
@@ -61,6 +64,9 @@ type LogSettingsFormValues = z.infer<typeof logSettingsSchema>
 type LogSettingsSectionProps = {
   defaultValues: {
     LogConsumeEnabled: boolean
+    DetailLogEnabled: boolean
+    DetailLogMaxBodyKB: number
+    DetailLogRetentionDays: number
     'log_setting.user_export_enabled': boolean
     'log_setting.max_range_days': number
   }
@@ -74,6 +80,9 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
   const formDefaults = useMemo<LogSettingsFormValues>(
     () => ({
       LogConsumeEnabled: props.defaultValues.LogConsumeEnabled,
+      DetailLogEnabled: props.defaultValues.DetailLogEnabled,
+      DetailLogMaxBodyKB: props.defaultValues.DetailLogMaxBodyKB,
+      DetailLogRetentionDays: props.defaultValues.DetailLogRetentionDays,
       log_setting: {
         user_export_enabled:
           props.defaultValues['log_setting.user_export_enabled'],
@@ -94,6 +103,9 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
   const onSubmit = async (values: LogSettingsFormValues) => {
     const changes = [
       ['LogConsumeEnabled', values.LogConsumeEnabled],
+      ['DetailLogEnabled', values.DetailLogEnabled],
+      ['DetailLogMaxBodyKB', values.DetailLogMaxBodyKB],
+      ['DetailLogRetentionDays', values.DetailLogRetentionDays],
       [
         'log_setting.user_export_enabled',
         values.log_setting.user_export_enabled,
@@ -146,6 +158,97 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
                 </SettingsSwitchItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name='DetailLogEnabled'
+              render={({ field }) => (
+                <SettingsSwitchItem>
+                  <SettingsSwitchContent>
+                    <FormLabel>{t('Record request details')}</FormLabel>
+                    <FormDescription>
+                      {t(
+                        'Store the full request and response body of every relay request. Bodies are stored in plaintext and grow with traffic, so review disk usage and retention before enabling.'
+                      )}
+                    </FormDescription>
+                  </SettingsSwitchContent>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsSwitchItem>
+              )}
+            />
+            {form.watch('DetailLogEnabled') && (
+              <>
+                <FormField
+                  control={form.control}
+                  name='DetailLogMaxBodyKB'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('Request detail body size limit (KB)')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={1}
+                          {...safeNumberFieldProps}
+                          {...field}
+                          onChange={(event) =>
+                            field.onChange(
+                              event.target.value === ''
+                                ? ''
+                                : Number(event.target.value)
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t(
+                          'Capture is truncated to this size per side; truncated records are marked in the viewer.'
+                        )}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='DetailLogRetentionDays'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('Request detail retention (days)')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={0}
+                          {...safeNumberFieldProps}
+                          {...field}
+                          onChange={(event) =>
+                            field.onChange(
+                              event.target.value === ''
+                                ? ''
+                                : Number(event.target.value)
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t(
+                          'Expired request details are removed together with the log cleanup task. Set 0 to keep them forever.'
+                        )}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
           </div>
 
           <Separator />

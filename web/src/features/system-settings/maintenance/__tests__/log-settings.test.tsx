@@ -42,6 +42,9 @@ function Fixture() {
         <LogSettingsSection
           defaultValues={{
             LogConsumeEnabled: true,
+            DetailLogEnabled: false,
+            DetailLogMaxBodyKB: 64,
+            DetailLogRetentionDays: 7,
             'log_setting.user_export_enabled': true,
             'log_setting.max_range_days': 30,
           }}
@@ -90,9 +93,12 @@ test('the page shows the four log modules in order, each with its own controls',
     'Server Log Management',
   ])
   const recording = screen.getByRole('group', { name: 'Log recording' })
-  expect(within(recording).getAllByRole('switch')).toHaveLength(1)
+  expect(within(recording).getAllByRole('switch')).toHaveLength(2)
   expect(
     within(recording).getByRole('switch', { name: 'Record quota usage' })
+  ).toBeVisible()
+  expect(
+    within(recording).getByRole('switch', { name: 'Record request details' })
   ).toBeVisible()
   const search = screen.getByRole('group', { name: 'Log search and export' })
   expect(
