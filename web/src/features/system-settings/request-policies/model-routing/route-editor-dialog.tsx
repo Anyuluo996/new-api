@@ -118,6 +118,10 @@ export function RouteEditorDialog(props: Props) {
       .map((row) => ({
         model: row.model.trim(),
         tag: row.tag?.trim() || undefined,
+        weight:
+          row.weight !== undefined && row.weight > 0
+            ? Math.floor(row.weight)
+            : undefined,
       }))
       .filter((target) => target.model.length > 0)
     if (savedTargets.length === 0) {
@@ -216,7 +220,10 @@ export function RouteEditorDialog(props: Props) {
           </p>
           <div className='space-y-2'>
             {targets.map((target, index) => (
-              <div key={target.rowId} className='flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center'>
+              <div
+                key={target.rowId}
+                className='flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center'
+              >
                 <ComboboxInput
                   className='min-w-0 flex-1'
                   options={modelOptions}
@@ -228,11 +235,29 @@ export function RouteEditorDialog(props: Props) {
                   aria-label={t('Target model')}
                 />
                 <Input
-                  className='min-w-0 sm:w-[180px]'
+                  className='min-w-0 sm:w-[160px]'
                   aria-label={t('Channel tag (optional)')}
                   placeholder={t('Channel tag (optional)')}
                   value={target.tag ?? ''}
                   onChange={(e) => updateTarget(index, { tag: e.target.value })}
+                />
+                <Input
+                  className='min-w-0 sm:w-24'
+                  type='number'
+                  min={0}
+                  step={1}
+                  aria-label={t('Weight (optional)')}
+                  placeholder={t('Default')}
+                  title={t(
+                    'Replaces channel weights for this target during selection'
+                  )}
+                  value={target.weight ?? ''}
+                  onChange={(e) => {
+                    const next = e.target.value
+                    updateTarget(index, {
+                      weight: next === '' ? undefined : Number(next),
+                    })
+                  }}
                 />
                 <Button
                   type='button'

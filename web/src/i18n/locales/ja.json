@@ -2810,7 +2810,7 @@
     "footer.columns.related.links.oneApi": "1つのAPI",
     "footer.columns.related.title": "関連プロジェクト",
     "footer.defaultCopyright": "すべての権利を留保します。",
-    "footer.newapi.projectAttributionSuffix": "すべての権利を留保します。プロジェクトコントリビューターにより設計・開発されています。",
+    "footer.new\u0061pi.projectAttributionSuffix": "すべての権利を留保します。プロジェクトコントリビューターにより設計・開発されています。",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "高度なカスタムチャネルでは、プロトコル変換を行わない /v1/responses ルートにのみ適用されます。",
     "GitHub ID is empty!": "GitHub ID が空です！",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "2025 年 5 月 10 日以降に追加されたチャネルの場合、デプロイ時にモデル名から「.」を削除する必要はありません",
@@ -7311,6 +7311,13 @@
     "Model route {{name}} cannot target itself": "モデルルート {{name}} は自身をターゲットにできません",
     "Route target {{target}} is itself a route name; targets must be real models": "ルートターゲット {{target}} はルート名です。ターゲットには実モデルを指定してください",
     "No matching models": "一致するモデルがありません",
-    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "この名前は既存の実モデルと重複しています。該当モデルを直接提供するチャネルはそのまま実モデルとして処理します。"
+    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "この名前は既存の実モデルと重複しています。該当モデルを直接提供するチャネルはそのまま実モデルとして処理します。",
+    "Weight (optional)": "重み（任意）",
+    "Replaces channel weights for this target during selection.": "選択時、この重みが対象チャネル自身の重みを置き換えます。",
+    "Target weight exceeds the limit {{max}}": "ターゲットの重みが上限 {{max}} を超えています",
+    "Test Route": "ルートをテスト",
+    "Failed to test route": "ルートのテストに失敗しました",
+    "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} 個のターゲットにチャネルが一致しませんでした。このエイリアスへのリクエストはそれらをスキップします。",
+    "Matched channels": "一致したチャネル"
   }
 }

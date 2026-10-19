@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 export interface ModelRouteTarget {
   model: string
   tag?: string
+  weight?: number
 }
 
 export interface ModelRoute {

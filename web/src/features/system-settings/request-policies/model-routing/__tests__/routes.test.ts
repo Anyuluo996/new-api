@@ -71,6 +71,26 @@ describe('serializeRoutes', () => {
     ])
   })
 
+  it('keeps positive integer weights and drops zero ones', () => {
+    const json = serializeRoutes([
+      {
+        name: 'a',
+        targets: [
+          { model: 'm1', weight: 3.7 },
+          { model: 'm2', weight: 0 },
+        ],
+        enabled: true,
+      },
+    ])
+    expect(JSON.parse(json)).toEqual([
+      {
+        name: 'a',
+        targets: [{ model: 'm1', weight: 3 }, { model: 'm2' }],
+        enabled: true,
+      },
+    ])
+  })
+
   it('round-trips through parse', () => {
     const source =
       '[{"name":"a","targets":[{"model":"m1","tag":"cn"}],"enabled":true,"remark":"r"}]'

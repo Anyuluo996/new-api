@@ -16,7 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Edit, Plus, Route, Trash2 } from 'lucide-react'
+import {
+  Edit,
+  FlaskConical,
+  Plus,
+  Route,
+  Trash2,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -46,6 +52,7 @@ interface RoutesTableProps {
   onDelete: (route: ModelRoute) => void
   onEnabledChange: (route: ModelRoute, enabled: boolean) => void
   onAdd: () => void
+  onTest: (route: ModelRoute) => void
 }
 
 export function RoutesTable(props: RoutesTableProps) {
@@ -120,6 +127,7 @@ export function RoutesTable(props: RoutesTableProps) {
                       @{target.tag}
                     </span>
                   ) : null}
+                  {target.weight ? <span>×{target.weight}</span> : null}
                 </Badge>
               ))}
               {route.targets.length === 0 ? (
@@ -166,6 +174,21 @@ export function RoutesTable(props: RoutesTableProps) {
                   }
                 />
                 <TooltipContent>{t('Edit Route')}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      aria-label={t('Test Route')}
+                      onClick={() => props.onTest(route)}
+                    >
+                      <FlaskConical aria-hidden='true' />
+                    </Button>
+                  }
+                />
+                <TooltipContent>{t('Test Route')}</TooltipContent>
               </Tooltip>
               <DataTableRowActionMenu ariaLabel={t('More actions')}>
                 <DropdownMenuGroup>

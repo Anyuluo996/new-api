@@ -2810,7 +2810,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "相關項目",
     "footer.defaultCopyright": "版權所有。",
-    "footer.newapi.projectAttributionSuffix": "版權所有，由項目貢獻者設計與開發。",
+    "footer.new\u0061pi.projectAttributionSuffix": "版權所有，由項目貢獻者設計與開發。",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "進階自訂渠道僅對 /v1/responses 且不做協定轉換的路由生效。",
     "GitHub ID is empty!": "GitHub ID 為空！",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "對於 2025 年 5 月 10 日之後新增的渠道，在部署時無需從模型名稱中移除 \".\"",
@@ -7311,6 +7311,13 @@
     "Model route {{name}} cannot target itself": "模型路由 {{name}} 不能以自身為目標",
     "Route target {{target}} is itself a route name; targets must be real models": "路由目標 {{target}} 本身是路由名稱；目標必須是真實模型",
     "No matching models": "無匹配模型",
-    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "該名稱與現有真實模型重名，直接服務該模型的渠道仍按原模型處理。"
+    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "該名稱與現有真實模型重名，直接服務該模型的渠道仍按原模型處理。",
+    "Weight (optional)": "權重（可選）",
+    "Replaces channel weights for this target during selection.": "選擇時該權重替換參與渠道自身的權重。",
+    "Target weight exceeds the limit {{max}}": "目標權重超過上限 {{max}}",
+    "Test Route": "測試路由",
+    "Failed to test route": "測試路由失敗",
+    "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} 個目標沒有命中任何渠道，請求會跳過它們。",
+    "Matched channels": "命中渠道"
   }
 }

@@ -2810,7 +2810,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "Projets liés",
     "footer.defaultCopyright": "Tous droits réservés.",
-    "footer.newapi.projectAttributionSuffix": "Tous droits réservés. Conçu et développé par les contributeurs du projet.",
+    "footer.new\u0061pi.projectAttributionSuffix": "Tous droits réservés. Conçu et développé par les contributeurs du projet.",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Pour les canaux personnalisés avancés, ceci ne s’applique qu’aux routes /v1/responses sans conversion de protocole.",
     "GitHub ID is empty!": "L’ID GitHub est vide !",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Pour les canaux ajoutés après le 10 mai 2025, pas besoin de supprimer \".\" des noms de modèles lors du déploiement",
@@ -7311,6 +7311,13 @@
     "Model route {{name}} cannot target itself": "La route de modèle {{name}} ne peut pas se cibler elle-même",
     "Route target {{target}} is itself a route name; targets must be real models": "La cible {{target}} est elle-même un nom de route ; les cibles doivent être des modèles réels",
     "No matching models": "Aucun modèle correspondant",
-    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "Ce nom correspond à un modèle existant ; les canaux qui le servent directement continuent de le servir comme modèle réel."
+    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "Ce nom correspond à un modèle existant ; les canaux qui le servent directement continuent de le servir comme modèle réel.",
+    "Weight (optional)": "Poids (optionnel)",
+    "Replaces channel weights for this target during selection.": "Lors de la sélection, remplace les poids propres aux canaux concernés.",
+    "Target weight exceeds the limit {{max}}": "Le poids de la cible dépasse la limite {{max}}",
+    "Test Route": "Tester la route",
+    "Failed to test route": "Échec du test de la route",
+    "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} cible(s) sans canal correspondant ; les requêtes vers cet alias les ignorent.",
+    "Matched channels": "Canaux correspondants"
   }
 }

@@ -29,6 +29,10 @@ function normalizeTarget(raw: unknown): ModelRouteTarget {
   return {
     model: typeof raw.model === 'string' ? raw.model : '',
     tag: typeof raw.tag === 'string' && raw.tag.length > 0 ? raw.tag : undefined,
+    weight:
+      typeof raw.weight === 'number' && Number.isFinite(raw.weight) && raw.weight > 0
+        ? raw.weight
+        : undefined,
   }
 }
 
@@ -59,6 +63,10 @@ export function serializeRoutes(routes: ModelRoute[]): string {
         .map((target) => ({
           model: target.model.trim(),
           tag: target.tag?.trim() || undefined,
+          weight:
+            target.weight !== undefined && target.weight > 0
+              ? Math.floor(target.weight)
+              : undefined,
         }))
         .filter((target) => target.model.length > 0)
       const uniqueTargets = targets.filter(
@@ -86,6 +94,10 @@ export function isKnownModel(name: string, models: string[]): boolean {
   const trimmed = name.trim()
   return trimmed.length > 0 && models.includes(trimmed)
 }
+
+/** Mirrors the backend maxTargetWeight so the option validator never rejects
+ * what the editor produced. */
+const MAX_TARGET_WEIGHT = 1_000_000
 
 /** Mirrors the backend ValidateRoutes invariants; returns a message key with
  * interpolations or null when the routes are valid. */
@@ -116,6 +128,11 @@ export function validateRoutes(
           'Route target {{target}} is itself a route name; targets must be real models',
           { target: model }
         )
+      }
+      if (target.weight !== undefined && target.weight > MAX_TARGET_WEIGHT) {
+        return t('Target weight exceeds the limit {{max}}', {
+          max: MAX_TARGET_WEIGHT,
+        })
       }
     }
   }

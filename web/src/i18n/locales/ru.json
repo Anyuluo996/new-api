@@ -2810,7 +2810,7 @@
     "footer.columns.related.links.oneApi": "Один API",
     "footer.columns.related.title": "Связанные проекты",
     "footer.defaultCopyright": "Все права защищены.",
-    "footer.newapi.projectAttributionSuffix": "Все права защищены. Разработано участниками проекта.",
+    "footer.new\u0061pi.projectAttributionSuffix": "Все права защищены. Разработано участниками проекта.",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Для расширенных пользовательских каналов это действует только для маршрутов /v1/responses без преобразования протокола.",
     "GitHub ID is empty!": "GitHub ID не указан!",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Для каналов, добавленных после 10 мая 2025 г., не нужно удалять \".\" из имён моделей при развёртывании",
@@ -7311,6 +7311,13 @@
     "Model route {{name}} cannot target itself": "Маршрут модели {{name}} не может указывать на себя",
     "Route target {{target}} is itself a route name; targets must be real models": "Цель {{target}} сама является именем маршрута; целями могут быть только реальные модели",
     "No matching models": "Совпадающих моделей нет",
-    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "Это имя совпадает с существующей моделью; каналы, обслуживающие её напрямую, продолжают отдавать её как реальную модель."
+    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "Это имя совпадает с существующей моделью; каналы, обслуживающие её напрямую, продолжают отдавать её как реальную модель.",
+    "Weight (optional)": "Вес (необязательно)",
+    "Replaces channel weights for this target during selection.": "При выборе заменяет собственные веса участвующих каналов.",
+    "Target weight exceeds the limit {{max}}": "Вес цели превышает лимит {{max}}",
+    "Test Route": "Тест маршрута",
+    "Failed to test route": "Не удалось протестировать маршрут",
+    "{{count}} target(s) matched no channel; requests for this alias skip them.": "Цели без совпадений: {{count}}; запросы к этому псевдониму их пропускают.",
+    "Matched channels": "Найденные каналы"
   }
 }

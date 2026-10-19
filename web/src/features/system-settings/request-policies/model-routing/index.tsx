@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 
 import { parseRoutes, serializeRoutes } from './lib/routes'
 import { RouteEditorDialog } from './route-editor-dialog'
+import { RouteTestDialog } from './route-test-dialog'
 import { RoutesTable } from './routes-table'
 import type { ModelRoute } from './types'
 
@@ -41,6 +42,7 @@ export function ModelRoutingList(props: Props) {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingRoute, setEditingRoute] = useState<ModelRoute | null>(null)
   const [deletingRoute, setDeletingRoute] = useState<ModelRoute | null>(null)
+  const [testingRoute, setTestingRoute] = useState<ModelRoute | null>(null)
 
   const openEditor = (route: ModelRoute | null) => {
     setEditingRoute(route)
@@ -88,6 +90,7 @@ export function ModelRoutingList(props: Props) {
             routes={routes}
             onEdit={openEditor}
             onDelete={setDeletingRoute}
+            onTest={(route) => setTestingRoute(route)}
             onEnabledChange={(route, enabled) => {
               const index = routes.findIndex((item) => item.name === route.name)
               if (index < 0) return
@@ -134,6 +137,12 @@ export function ModelRoutingList(props: Props) {
             : routes.map((route) => route.name)
         }
         onSave={handleRouteSave}
+      />
+
+      <RouteTestDialog
+        open={testingRoute !== null}
+        onOpenChange={(open) => !open && setTestingRoute(null)}
+        routeName={testingRoute?.name ?? null}
       />
     </>
   )
