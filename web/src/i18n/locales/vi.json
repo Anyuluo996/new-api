@@ -2810,7 +2810,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "Các Dự Án Liên Quan",
     "footer.defaultCopyright": "Bản quyền được bảo lưu.",
-    "footer.new\u0061pi.projectAttributionSuffix": "Bản quyền được bảo lưu. Được thiết kế và phát triển bởi các cộng tác viên dự án.",
+    "footer.newapi.projectAttributionSuffix": "Bản quyền được bảo lưu. Được thiết kế và phát triển bởi các cộng tác viên dự án.",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "Với kênh tùy chỉnh nâng cao, thiết lập này chỉ áp dụng cho các route /v1/responses không chuyển đổi giao thức.",
     "GitHub ID is empty!": "ID GitHub trống!",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "Đối với các kênh được thêm sau ngày 10 tháng 5 năm 2025, không cần loại bỏ \".\" khỏi tên mô hình trong quá trình triển khai",
@@ -7309,6 +7309,8 @@
     "Duplicate model route name: {{name}}": "Tên tuyến mô hình trùng lặp: {{name}}",
     "Model route {{name}} must define at least one target": "Tuyến mô hình {{name}} cần ít nhất một đích",
     "Model route {{name}} cannot target itself": "Tuyến mô hình {{name}} không thể tự làm đích",
-    "Route target {{target}} is itself a route name; targets must be real models": "Đích {{target}} là một tên tuyến; đích phải là mô hình thật"
+    "Route target {{target}} is itself a route name; targets must be real models": "Đích {{target}} là một tên tuyến; đích phải là mô hình thật",
+    "No matching models": "Không có mô hình khớp",
+    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "Tên này trùng với mô hình hiện có; các kênh đang phục vụ trực tiếp sẽ tiếp tục xử lý như mô hình thật."
   }
 }

@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  isKnownModel,
   parseRoutes,
   routesEqual,
   serializeRoutes,
@@ -87,6 +88,18 @@ describe('routesEqual', () => {
     expect(routesEqual('[{"name":"a","targets":[]}]', '[{"name":"b","targets":[]}]')).toBe(
       false
     )
+  })
+})
+
+describe('isKnownModel', () => {
+  it('matches only non-empty trimmed names against enabled models', () => {
+    const models = ['gpt-4o', 'claude-3']
+    expect(isKnownModel('gpt-4o', models)).toBe(true)
+    expect(isKnownModel(' gpt-4o ', models)).toBe(true)
+    expect(isKnownModel('gpt-4o-all', models)).toBe(false)
+    expect(isKnownModel('', models)).toBe(false)
+    expect(isKnownModel('  ', models)).toBe(false)
+    expect(isKnownModel('gpt-4o', [])).toBe(false)
   })
 })
 

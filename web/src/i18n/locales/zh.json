@@ -2810,7 +2810,7 @@
     "footer.columns.related.links.oneApi": "One API",
     "footer.columns.related.title": "相关项目",
     "footer.defaultCopyright": "版权所有。",
-    "footer.new\u0061pi.projectAttributionSuffix": "版权所有，由项目贡献者设计与开发。",
+    "footer.newapi.projectAttributionSuffix": "版权所有，由项目贡献者设计与开发。",
     "For advanced custom channels this applies only to /v1/responses routes without protocol conversion.": "高级自定义渠道仅对 /v1/responses 且不做协议转换的路由生效。",
     "GitHub ID is empty!": "GitHub ID 为空！",
     "For channels added after May 10, 2025, no need to remove \".\" from model names during deployment": "对于 2025 年 5 月 10 日之后添加的渠道，在部署时无需从模型名称中移除 \".\"",
@@ -7309,6 +7309,8 @@
     "Duplicate model route name: {{name}}": "模型路由名称重复：{{name}}",
     "Model route {{name}} must define at least one target": "模型路由 {{name}} 至少需要一个目标",
     "Model route {{name}} cannot target itself": "模型路由 {{name}} 不能以自身为目标",
-    "Route target {{target}} is itself a route name; targets must be real models": "路由目标 {{target}} 本身是路由名称；目标必须是真实模型"
+    "Route target {{target}} is itself a route name; targets must be real models": "路由目标 {{target}} 本身是路由名称；目标必须是真实模型",
+    "No matching models": "无匹配模型",
+    "This name matches an existing model; channels serving it directly keep serving it as a real model.": "该名称与现有真实模型重名，直接服务该模型的渠道仍按原模型处理。"
   }
 }

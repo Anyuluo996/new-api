@@ -81,6 +81,12 @@ export function routesEqual(a: string, b: string): boolean {
   return JSON.stringify(parseRoutes(a)) === JSON.stringify(parseRoutes(b))
 }
 
+/** True when the trimmed alias name matches an enabled channel model. */
+export function isKnownModel(name: string, models: string[]): boolean {
+  const trimmed = name.trim()
+  return trimmed.length > 0 && models.includes(trimmed)
+}
+
 /** Mirrors the backend ValidateRoutes invariants; returns a message key with
  * interpolations or null when the routes are valid. */
 export function validateRoutes(

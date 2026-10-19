@@ -16,19 +16,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useQuery } from '@tanstack/react-query'
 import { Plus, Trash2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Dialog } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
+import { ComboboxInput } from '@/components/ui/combobox-input'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { getEnabledModels } from '@/features/channels/api'
+import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { SettingsSwitchField } from '../../components/settings-form-layout'
+import { isKnownModel } from './lib/routes'
 import type { ModelRoute, ModelRouteTarget } from './types'
 
 type TargetRow = ModelRouteTarget & {
@@ -64,6 +69,20 @@ export function RouteEditorDialog(props: Props) {
     createTargetRow(),
   ])
 
+  const modelsQuery = useQuery({
+    queryKey: ['enabled-models'],
+    queryFn: async () => requireServerSuccess(await getEnabledModels()),
+    enabled: props.open,
+  })
+  const enabledModels = useMemo(
+    () => modelsQuery.data?.data ?? [],
+    [modelsQuery.data]
+  )
+  const modelOptions = useMemo(
+    () => enabledModels.map((model) => ({ value: model, label: model })),
+    [enabledModels]
+  )
+
   const form = useForm<RouteFormValues>({
     defaultValues: {
       name: '',
@@ -71,6 +90,7 @@ export function RouteEditorDialog(props: Props) {
       enabled: true,
     },
   })
+  const nameMatchesModel = isKnownModel(form.watch('name'), enabledModels)
 
   useEffect(() => {
     if (!props.open) return
@@ -160,6 +180,13 @@ export function RouteEditorDialog(props: Props) {
             placeholder='gpt-4o-all'
             {...form.register('name', { required: true })}
           />
+          {nameMatchesModel ? (
+            <p role='note' className='text-amber-600 text-xs dark:text-amber-400'>
+              {t(
+                'This name matches an existing model; channels serving it directly keep serving it as a real model.'
+              )}
+            </p>
+          ) : null}
           <p className='text-muted-foreground text-xs'>
             {t(
               'Clients request this name; it must not duplicate a real model served by any channel.'
@@ -189,16 +216,16 @@ export function RouteEditorDialog(props: Props) {
           </p>
           <div className='space-y-2'>
             {targets.map((target, index) => (
-              <div
-                key={target.rowId}
-                className='flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center'
-              >
-                <Input
+              <div key={target.rowId} className='flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center'>
+                <ComboboxInput
                   className='min-w-0 flex-1'
-                  aria-label={t('Target model')}
-                  placeholder='gpt-4o-2024-11-20'
+                  options={modelOptions}
                   value={target.model}
-                  onChange={(e) => updateTarget(index, { model: e.target.value })}
+                  onValueChange={(value) => updateTarget(index, { model: value })}
+                  placeholder='gpt-4o-2024-11-20'
+                  emptyText={t('No matching models')}
+                  allowCustomValue
+                  aria-label={t('Target model')}
                 />
                 <Input
                   className='min-w-0 sm:w-[180px]'
