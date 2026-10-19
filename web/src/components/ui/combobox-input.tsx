@@ -82,6 +82,7 @@ export function ComboboxInput({
   // from treating option clicks as outside presses.
   const [dropdown, setDropdown] = React.useState<{
     container: HTMLElement
+    position: 'fixed' | 'absolute'
     top: number
     left: number
     width: number
@@ -129,6 +130,11 @@ export function ComboboxInput({
   }, [open])
 
   // Position the portaled dropdown under the input and follow scroll/resize.
+  // Dialog popups carry a permanent translate (Tailwind -translate-x-1/2),
+  // which makes them the containing block for fixed children — inside a
+  // dialog the dropdown must be positioned absolutely relative to the popup,
+  // otherwise the popup origin gets added on top of the viewport coordinates
+  // and the dropdown drifts by the dialog's on-screen offset.
   React.useEffect(() => {
     if (!open) {
       setDropdown(null)
@@ -140,10 +146,25 @@ export function ComboboxInput({
       input.closest<HTMLElement>('[role="dialog"]') ?? document.body
     const measure = () => {
       const rect = input.getBoundingClientRect()
+      if (container === document.body) {
+        setDropdown({
+          container,
+          position: 'fixed',
+          top: rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+        })
+        return
+      }
+      const containerRect = container.getBoundingClientRect()
       setDropdown({
         container,
-        top: rect.bottom + 4,
-        left: rect.left,
+        position: 'absolute',
+        // Padding-box coordinates of an absolutely positioned child of the
+        // scrolling popup: viewport offset plus the popup's own scrollTop so
+        // the dropdown stays under the input after inner scrolls.
+        top: rect.bottom + 4 - containerRect.top + container.scrollTop,
+        left: rect.left - containerRect.left,
         width: rect.width,
       })
     }
@@ -290,7 +311,7 @@ export function ComboboxInput({
           <div
             ref={dropdownRef}
             style={{
-              position: 'fixed',
+              position: dropdown.position,
               top: dropdown.top,
               left: dropdown.left,
               width: dropdown.width,
