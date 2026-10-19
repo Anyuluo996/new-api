@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { createSectionRegistry } from '../utils/section-registry'
 import { ChannelHealthSection } from './channel-health-section'
 import type { RequestPolicySettings } from './defaults'
+import { ModelRoutingSection } from './model-routing-section'
 import { RequestChecksSection } from './request-checks-section'
 import { RoutingPolicySection } from './routing-section'
 
@@ -40,6 +41,11 @@ const POLICY_SECTIONS = [
     id: 'routing',
     titleKey: 'Sessions and retries',
     build: () => <RoutingPolicySection />,
+  },
+  {
+    id: 'model-routing',
+    titleKey: 'Model routing',
+    build: () => <ModelRoutingSection />,
   },
   {
     id: 'health',
