@@ -105,6 +105,9 @@ type RelayInfo struct {
 	// aliases never participate in channel selection or upstream routing.
 	BillingModelName string
 
+	// Fork: 模型路由——命中路由时置位;消费日志用它把模型名记回用户请求的别名
+	ModelRouted bool
+
 	RequestURLPath     string
 	RequestHeaders     map[string]string
 	ShouldIncludeUsage bool
@@ -277,6 +280,7 @@ func (info *RelayInfo) InitChannelMeta(c *gin.Context) {
 	// Fork: 模型路由——路由命中时上游使用改写后的真实模型名
 	if routed := common.GetContextKeyString(c, constant.ContextKeyRoutedModel); routed != "" {
 		upstreamModelName = routed
+		info.ModelRouted = true
 	}
 	channelMeta := &ChannelMeta{
 		ChannelType:          channelType,
@@ -867,6 +871,16 @@ func (info *RelayInfo) GetUpstreamModelName() string {
 		return ""
 	}
 	return info.UpstreamModelName
+}
+
+// GetLogModelName returns the model name recorded in consume logs. Fork:
+// 模型路由——路由命中的请求记录用户请求的别名(计费仍按目标模型),其余请求
+// 维持原行为记录计费名;真实上游模型始终在 other.upstream_model_name。
+func (info *RelayInfo) GetLogModelName(billingName string) string {
+	if info != nil && info.ModelRouted {
+		return info.OriginModelName
+	}
+	return billingName
 }
 
 func (info *RelayInfo) HasChannelMeta() bool { return info != nil && info.ChannelMeta != nil }
