@@ -7318,6 +7318,17 @@
     "Test Route": "Kiểm thử tuyến",
     "Failed to test route": "Kiểm thử tuyến thất bại",
     "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} đích không khớp kênh nào; yêu cầu đến alias này sẽ bỏ qua chúng.",
-    "Matched channels": "Kênh khớp"
+    "Matched channels": "Kênh khớp",
+    "Simulate selection": "Mô phỏng lựa chọn",
+    "Runs the real channel selection {{times}} times and tallies the winners.": "Chạy logic lựa chọn kênh thật {{times}} lần và thống kê kênh trúng mỗi lần.",
+    "Simulate {{times}} picks": "Mô phỏng {{times}} lần",
+    "{{misses}} / {{times}} picks found no channel": "{{misses}}/{{times}} lần không khớp kênh",
+    "No available group": "Không có nhóm khả dụng",
+    "Response model": "Mô hình phản hồi",
+    "Real request test": "Kiểm thử yêu cầu thật",
+    "Sends one real chat request with the alias as the model name and is billed to your account. The response model shows the rewrite result.": "Gửi một yêu cầu chat thật với alias làm tên mô hình, tính vào hạn mức tài khoản của bạn. Mô hình phản hồi chính là kết quả ghi đè.",
+    "Send real request": "Gửi yêu cầu thật",
+    "Requesting...": "Đang gửi...",
+    "Response content": "Nội dung phản hồi"
   }
 }

@@ -7318,6 +7318,17 @@
     "Test Route": "ルートをテスト",
     "Failed to test route": "ルートのテストに失敗しました",
     "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} 個のターゲットにチャネルが一致しませんでした。このエイリアスへのリクエストはそれらをスキップします。",
-    "Matched channels": "一致したチャネル"
+    "Matched channels": "一致したチャネル",
+    "Simulate selection": "選択をシミュレート",
+    "Runs the real channel selection {{times}} times and tallies the winners.": "実際の選択ロジックで {{times}} 回実行し、命中チャネルを集計します。",
+    "Simulate {{times}} picks": "{{times}} 回シミュレート",
+    "{{misses}} / {{times}} picks found no channel": "{{times}} 回中 {{misses}} 回チャネルなし",
+    "No available group": "利用可能なグループがありません",
+    "Response model": "応答モデル",
+    "Real request test": "実リクエストテスト",
+    "Sends one real chat request with the alias as the model name and is billed to your account. The response model shows the rewrite result.": "エイリアスをモデル名として実際のチャットリクエストを1件送信し、アカウントに課金されます。応答モデルが書き換え結果です。",
+    "Send real request": "実リクエストを送信",
+    "Requesting...": "リクエスト中...",
+    "Response content": "応答内容"
   }
 }

@@ -7318,6 +7318,17 @@
     "Test Route": "Тест маршрута",
     "Failed to test route": "Не удалось протестировать маршрут",
     "{{count}} target(s) matched no channel; requests for this alias skip them.": "Цели без совпадений: {{count}}; запросы к этому псевдониму их пропускают.",
-    "Matched channels": "Найденные каналы"
+    "Matched channels": "Найденные каналы",
+    "Simulate selection": "Симуляция выбора",
+    "Runs the real channel selection {{times}} times and tallies the winners.": "Запускает реальный выбор канала {{times}} раз и подсчитывает победителей.",
+    "Simulate {{times}} picks": "Смоделировать {{times}} выборов",
+    "{{misses}} / {{times}} picks found no channel": "{{misses}} из {{times}} выборов не нашли канал",
+    "No available group": "Нет доступной группы",
+    "Response model": "Модель ответа",
+    "Real request test": "Тест реального запроса",
+    "Sends one real chat request with the alias as the model name and is billed to your account. The response model shows the rewrite result.": "Отправляет один реальный запрос с псевдонимом в качестве модели и тарифицируется на ваш аккаунт. Модель ответа показывает результат перезаписи.",
+    "Send real request": "Отправить реальный запрос",
+    "Requesting...": "Отправка...",
+    "Response content": "Содержимое ответа"
   }
 }

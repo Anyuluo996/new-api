@@ -7318,6 +7318,17 @@
     "Test Route": "测试路由",
     "Failed to test route": "测试路由失败",
     "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} 个目标没有命中任何渠道，请求会跳过它们。",
-    "Matched channels": "命中渠道"
+    "Matched channels": "命中渠道",
+    "Simulate selection": "模拟选择",
+    "Runs the real channel selection {{times}} times and tallies the winners.": "用真实的选择逻辑跑 {{times}} 次，统计每次命中的渠道。",
+    "Simulate {{times}} picks": "模拟 {{times}} 次",
+    "{{misses}} / {{times}} picks found no channel": "{{misses}}/{{times}} 次未命中渠道",
+    "No available group": "无可用分组",
+    "Response model": "响应模型",
+    "Real request test": "真实请求测试",
+    "Sends one real chat request with the alias as the model name and is billed to your account. The response model shows the rewrite result.": "以别名为模型名发送一条真实对话请求，会计入你的账户额度。响应模型即改写结果。",
+    "Send real request": "发送真实请求",
+    "Requesting...": "请求中...",
+    "Response content": "响应内容"
   }
 }

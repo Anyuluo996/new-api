@@ -7318,6 +7318,17 @@
     "Test Route": "Tester la route",
     "Failed to test route": "Échec du test de la route",
     "{{count}} target(s) matched no channel; requests for this alias skip them.": "{{count}} cible(s) sans canal correspondant ; les requêtes vers cet alias les ignorent.",
-    "Matched channels": "Canaux correspondants"
+    "Matched channels": "Canaux correspondants",
+    "Simulate selection": "Simuler la sélection",
+    "Runs the real channel selection {{times}} times and tallies the winners.": "Exécute la vraie sélection de canal {{times}} fois et comptabilise les gagnants.",
+    "Simulate {{times}} picks": "Simuler {{times}} tirages",
+    "{{misses}} / {{times}} picks found no channel": "{{misses}} / {{times}} tirages sans canal",
+    "No available group": "Aucun groupe disponible",
+    "Response model": "Modèle de réponse",
+    "Real request test": "Test de requête réelle",
+    "Sends one real chat request with the alias as the model name and is billed to your account. The response model shows the rewrite result.": "Envoie une vraie requête de chat avec l'alias comme nom de modèle, facturée sur votre compte. Le modèle de réponse montre le résultat de la réécriture.",
+    "Send real request": "Envoyer une requête réelle",
+    "Requesting...": "Requête en cours...",
+    "Response content": "Contenu de la réponse"
   }
 }

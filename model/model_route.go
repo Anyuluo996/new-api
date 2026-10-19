@@ -1,8 +1,10 @@
 package model
 
 import (
+	"maps"
 	"slices"
 	"sort"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/setting/model_route_setting"
@@ -135,14 +137,26 @@ type ModelRouteTargetSummary struct {
 	ChannelCount int    `json:"channel_count"`
 }
 
+// ModelRouteDryRun is the dry-run result of a route: per-target match
+// counts, the deduplicated channel list, and the groups the alias is
+// available in (groups of enabled matched channels).
+type ModelRouteDryRun struct {
+	Targets  []ModelRouteTargetSummary `json:"targets"`
+	Channels []ModelRouteTestChannel   `json:"channels"`
+	Groups   []string                  `json:"groups"`
+}
+
 // ResolveModelRouteChannels dry-runs the route against current channels:
 // per-target match counts plus the deduplicated channel list the alias would
 // draw from, with effective weights (target weight replaces channel weight).
-func ResolveModelRouteChannels(route model_route_setting.ModelRoute) ([]ModelRouteTargetSummary, []ModelRouteTestChannel) {
+func ResolveModelRouteChannels(route model_route_setting.ModelRoute) *ModelRouteDryRun {
 	var allChannels []*Channel
 	DB.Find(&allChannels)
-	summaries := make([]ModelRouteTargetSummary, 0, len(route.Targets))
-	testChannels := make([]ModelRouteTestChannel, 0)
+	dryRun := &ModelRouteDryRun{
+		Targets:  make([]ModelRouteTargetSummary, 0, len(route.Targets)),
+		Channels: make([]ModelRouteTestChannel, 0),
+	}
+	groups := make(map[string]bool)
 	seen := make(map[int]bool)
 	for _, target := range route.Targets {
 		summary := ModelRouteTargetSummary{Model: target.Model, Tag: target.Tag, Weight: target.Weight}
@@ -173,9 +187,64 @@ func ResolveModelRouteChannels(route model_route_setting.ModelRoute) ([]ModelRou
 			if channel.Tag != nil {
 				info.Tag = *channel.Tag
 			}
-			testChannels = append(testChannels, info)
+			if info.Enabled {
+				for group := range strings.SplitSeq(channel.Group, ",") {
+					if group != "" {
+						groups[group] = true
+					}
+				}
+			}
+			dryRun.Channels = append(dryRun.Channels, info)
 		}
-		summaries = append(summaries, summary)
+		dryRun.Targets = append(dryRun.Targets, summary)
 	}
-	return summaries, testChannels
+	dryRun.Groups = slices.Sorted(maps.Keys(groups))
+	return dryRun
+}
+
+// ModelRoutePick tallies simulated alias selections per channel.
+type ModelRoutePick struct {
+	ChannelId   int    `json:"channel_id"`
+	ChannelName string `json:"channel_name"`
+	TargetModel string `json:"target_model"`
+	Count       int    `json:"count"`
+}
+
+// SimulateModelRouteSelection runs the real channel selection `times` times
+// for the alias in the given group and tallies which channel wins each pick
+// along with the target model it would be rewritten to. It exercises the
+// production selection path including route weights and priority tiers.
+func SimulateModelRouteSelection(alias, group string, times int) ([]ModelRoutePick, int, error) {
+	tally := make(map[int]*ModelRoutePick)
+	order := make([]int, 0, times)
+	misses := 0
+	for range times {
+		channel, err := GetRandomSatisfiedChannel(group, alias, 0, nil)
+		if err != nil {
+			return nil, misses, err
+		}
+		if channel == nil {
+			misses++
+			continue
+		}
+		pick, ok := tally[channel.Id]
+		if !ok {
+			pick = &ModelRoutePick{
+				ChannelId:   channel.Id,
+				ChannelName: channel.Name,
+				TargetModel: alias,
+			}
+			tally[channel.Id] = pick
+			order = append(order, channel.Id)
+		}
+		pick.Count++
+		if target := ResolveModelRouteUpstream(channel, alias); target != "" {
+			pick.TargetModel = target
+		}
+	}
+	picks := make([]ModelRoutePick, 0, len(order))
+	for _, id := range order {
+		picks = append(picks, *tally[id])
+	}
+	return picks, misses, nil
 }
