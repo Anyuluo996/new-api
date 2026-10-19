@@ -13,6 +13,9 @@ const (
 	// Fork: 请求详情日志——上游请求耗时(毫秒,由 DoApiRequest 打点,重试时为最后一次)
 	ContextKeyUpstreamLatencyMs ContextKey = "upstream_latency_ms"
 
+	// Fork: 模型路由——本次尝试选中渠道按路由表改写出的真实模型名(空=未命中路由)
+	ContextKeyRoutedModel ContextKey = "routed_model"
+
 	/* token related keys */
 	ContextKeyTokenUnlimited         ContextKey = "token_unlimited_quota"
 	ContextKeyTokenKey               ContextKey = "token_key"

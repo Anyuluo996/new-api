@@ -560,6 +560,8 @@ func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, mode
 			types.ErrOptionWithSkipRetry(),
 		)
 	}
+	// Fork: 模型路由——按路由表把对外别名改写为该渠道的真实模型名(未命中为空串)
+	common.SetContextKey(c, constant.ContextKeyRoutedModel, model.ResolveModelRouteUpstream(channel, modelName))
 	if candidate, matched := pinnedEndpointCandidateForChannel(c, channel, expectedPlugin); matched {
 		if value, exists := c.Get(jsplugin.ContextKeyPinnedEndpoint); exists {
 			if pinned, ok := value.(jsplugin.PinnedEndpoint); ok && candidate.Plugin != nil && candidate.Plugin != pinned.Plugin {

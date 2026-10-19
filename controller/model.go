@@ -20,6 +20,7 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting/model_route_setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
@@ -249,6 +250,12 @@ func ListModels(c *gin.Context, modelType int) {
 		}
 	}
 	models := service.GetGroupsEnabledModels(ownerGroups)
+	routedAliases := routedModelAliases(models)
+	models = append(models, routedAliases...)
+	routedAliasSet := make(map[string]bool, len(routedAliases))
+	for _, alias := range routedAliases {
+		routedAliasSet[alias] = true
+	}
 	for _, modelName := range models {
 		if modelLimitEnable {
 			matchingName := ratio_setting.RoutingMatchModelName(modelName)
@@ -256,7 +263,8 @@ func ListModels(c *gin.Context, modelType int) {
 				continue
 			}
 		}
-		if !acceptUnsetRatioModel && !helper.HasModelBillingConfig(modelName) {
+		// Fork: 模型路由——别名按目标模型计价，自身无需倍率配置
+		if !acceptUnsetRatioModel && !helper.HasModelBillingConfig(modelName) && !routedAliasSet[modelName] {
 			continue
 		}
 		userModelNames = append(userModelNames, modelName)
@@ -313,6 +321,37 @@ func ListModels(c *gin.Context, modelType int) {
 			"object":  "list",
 		})
 	}
+}
+
+// routedModelAliases returns enabled route aliases that resolve to at least
+// one model already enabled in the caller's groups and are not real models
+// themselves, so /v1/models advertises them alongside real models.
+func routedModelAliases(models []string) []string {
+	routes := model_route_setting.GetModelRoutes()
+	if len(routes) == 0 {
+		return nil
+	}
+	enabled := make(map[string]bool, len(models))
+	for _, name := range models {
+		enabled[name] = true
+	}
+	aliases := make([]string, 0, len(routes))
+	for _, route := range routes {
+		if !route.Enabled || enabled[route.Name] {
+			continue
+		}
+		served := false
+		for _, target := range route.Targets {
+			if enabled[target.Model] {
+				served = true
+				break
+			}
+		}
+		if served {
+			aliases = append(aliases, route.Name)
+		}
+	}
+	return aliases
 }
 
 func ChannelListModels(c *gin.Context) {

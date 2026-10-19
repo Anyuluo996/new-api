@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
@@ -65,8 +66,17 @@ func HandleGroupRatio(ctx *gin.Context, relayInfo *relaycommon.RelayInfo) hostty
 
 func ModelPriceHelper(c *gin.Context, info *relaycommon.RelayInfo, promptTokens int, meta *types.TokenCountMeta) (hosttypes.PriceData, error) {
 	if info != nil {
-		if matched := resolveBillingModelName(info.GetOriginModelName()); matched != "" && matched != info.OriginModelName {
-			info.BillingModelName = matched
+		// Fork: 模型路由——命中路由时按渠道真实模型计价；改写名无 canonical 别名时直接以改写名计价
+		billingOrigin := info.GetOriginModelName()
+		if routed := common.GetContextKeyString(c, constant.ContextKeyRoutedModel); routed != "" {
+			billingOrigin = routed
+		}
+		if matched := resolveBillingModelName(billingOrigin); matched != "" {
+			if matched != info.OriginModelName {
+				info.BillingModelName = matched
+			}
+		} else if billingOrigin != info.OriginModelName {
+			info.BillingModelName = billingOrigin
 		}
 	}
 	billingModelName := info.GetBillingModelName()
@@ -211,19 +221,24 @@ func ModelPriceHelper(c *gin.Context, info *relaycommon.RelayInfo, promptTokens 
 func ModelPriceHelperPerCall(c *gin.Context, info *relaycommon.RelayInfo) (hosttypes.PriceData, error) {
 	groupRatioInfo := HandleGroupRatio(c, info)
 
-	modelPrice, success := ratio_setting.GetModelPrice(info.OriginModelName, true)
+	// Fork: 模型路由——命中路由时按渠道真实模型计价
+	billingOrigin := info.OriginModelName
+	if routed := common.GetContextKeyString(c, constant.ContextKeyRoutedModel); routed != "" {
+		billingOrigin = routed
+	}
+	modelPrice, success := ratio_setting.GetModelPrice(billingOrigin, true)
 	usePrice := success
 	var modelRatio float64
 
 	if !success {
-		defaultPrice, ok := ratio_setting.GetDefaultModelPriceMap()[info.OriginModelName]
+		defaultPrice, ok := ratio_setting.GetDefaultModelPriceMap()[billingOrigin]
 		if ok {
 			modelPrice = defaultPrice
 			usePrice = true
 		} else {
 			var ratioSuccess bool
 			var matchName string
-			modelRatio, ratioSuccess, matchName = ratio_setting.GetModelRatio(info.OriginModelName)
+			modelRatio, ratioSuccess, matchName = ratio_setting.GetModelRatio(billingOrigin)
 			acceptUnsetRatio := false
 			if info.UserSetting.AcceptUnsetRatioModel {
 				acceptUnsetRatio = true

@@ -273,6 +273,11 @@ func (info *RelayInfo) InitChannelMeta(c *gin.Context) {
 	paramOverride := common.GetContextKeyStringMap(c, constant.ContextKeyChannelParamOverride)
 	headerOverride := common.GetContextKeyStringMap(c, constant.ContextKeyChannelHeaderOverride)
 	apiType, _ := common.ChannelType2APIType(channelType)
+	upstreamModelName := common.GetContextKeyString(c, constant.ContextKeyOriginalModel)
+	// Fork: 模型路由——路由命中时上游使用改写后的真实模型名
+	if routed := common.GetContextKeyString(c, constant.ContextKeyRoutedModel); routed != "" {
+		upstreamModelName = routed
+	}
 	channelMeta := &ChannelMeta{
 		ChannelType:          channelType,
 		ChannelId:            common.GetContextKeyInt(c, constant.ContextKeyChannelId),
@@ -286,7 +291,7 @@ func (info *RelayInfo) InitChannelMeta(c *gin.Context) {
 		ChannelCreateTime:    c.GetInt64("channel_create_time"),
 		ParamOverride:        paramOverride,
 		HeadersOverride:      headerOverride,
-		UpstreamModelName:    common.GetContextKeyString(c, constant.ContextKeyOriginalModel),
+		UpstreamModelName:    upstreamModelName,
 		IsModelMapped:        false,
 		SupportStreamOptions: false,
 	}

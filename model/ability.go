@@ -8,6 +8,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/setting/model_route_setting"
 
 	"github.com/samber/lo"
 	"gorm.io/gorm"
@@ -116,49 +117,101 @@ func GetChannel(
 		return nil, err
 	}
 	abilities = filterAbilitiesByConstraints(abilities, model, filters)
-	if len(abilities) > 0 {
-		priorities := make([]int64, 0)
-		seen := make(map[int64]bool)
-		for _, ability := range abilities {
-			priority := int64(0)
-			if ability.Priority != nil {
-				priority = *ability.Priority
-			}
-			if !seen[priority] {
-				seen[priority] = true
-				priorities = append(priorities, priority)
-			}
-		}
-		sort.Slice(priorities, func(i, j int) bool { return priorities[i] > priorities[j] })
-		if retry >= len(priorities) {
-			retry = len(priorities) - 1
-		}
-		targetPriority := priorities[retry]
-		abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
-			return ability.Priority == nil && targetPriority == 0 || ability.Priority != nil && *ability.Priority == targetPriority
-		})
+	return selectChannelFromAbilities(abilities, retry)
+}
+
+// GetChannelForRoute selects a channel for a model route alias when the
+// memory cache is disabled. Abilities of every target model are merged in
+// configured target order (first target wins per channel, tag-filtered),
+// then run through the same constraint filter and priority-tier weighted
+// selection as GetChannel.
+func GetChannelForRoute(
+	group string,
+	route model_route_setting.ModelRoute,
+	retry int,
+	filters []dto.ChannelFilter,
+) (*Channel, error) {
+	models := make([]string, 0, len(route.Targets))
+	for _, target := range route.Targets {
+		models = append(models, target.Model)
 	}
-	channel := Channel{}
-	if len(abilities) > 0 {
-		// Randomly choose one
-		weightSum := uint(0)
-		for _, ability_ := range abilities {
-			weightSum += ability_.Weight + 10
-		}
-		// Randomly choose one
-		weight := common.GetRandomInt(int(weightSum))
-		for _, ability_ := range abilities {
-			weight -= int(ability_.Weight) + 10
-			//log.Printf("weight: %d, ability weight: %d", weight, *ability_.Weight)
-			if weight <= 0 {
-				channel.Id = ability_.ChannelId
-				break
+	var abilities []Ability
+	err := DB.Where(commonGroupCol+" = ? and model in ? and enabled = ?", group, models, true).Order("priority DESC, weight DESC").Find(&abilities).Error
+	if err != nil {
+		return nil, err
+	}
+	abilities = filterRouteAbilities(abilities, route)
+	abilities = filterAbilitiesByConstraints(abilities, route.Name, filters)
+	return selectChannelFromAbilities(abilities, retry)
+}
+
+func filterRouteAbilities(abilities []Ability, route model_route_setting.ModelRoute) []Ability {
+	byModel := make(map[string][]Ability, len(route.Targets))
+	for _, ability := range abilities {
+		byModel[ability.Model] = append(byModel[ability.Model], ability)
+	}
+	merged := make([]Ability, 0, len(abilities))
+	seen := make(map[int]bool)
+	for _, target := range route.Targets {
+		for _, ability := range byModel[target.Model] {
+			if seen[ability.ChannelId] {
+				continue
 			}
+			if !routeTargetTagMatches(target.Tag, ability.Tag) {
+				continue
+			}
+			seen[ability.ChannelId] = true
+			merged = append(merged, ability)
 		}
-	} else {
+	}
+	return merged
+}
+
+// selectChannelFromAbilities picks one channel from already filtered
+// candidate abilities: retry indexes into the distinct priority tiers
+// (highest first) and channels inside a tier compete by weighted random.
+func selectChannelFromAbilities(abilities []Ability, retry int) (*Channel, error) {
+	channel := Channel{}
+	if len(abilities) == 0 {
 		return nil, nil
 	}
-	err = DB.First(&channel, "id = ?", channel.Id).Error
+	priorities := make([]int64, 0)
+	seen := make(map[int64]bool)
+	for _, ability := range abilities {
+		priority := int64(0)
+		if ability.Priority != nil {
+			priority = *ability.Priority
+		}
+		if !seen[priority] {
+			seen[priority] = true
+			priorities = append(priorities, priority)
+		}
+	}
+	sort.Slice(priorities, func(i, j int) bool { return priorities[i] > priorities[j] })
+	if retry >= len(priorities) {
+		retry = len(priorities) - 1
+	}
+	targetPriority := priorities[retry]
+	abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
+		return ability.Priority == nil && targetPriority == 0 || ability.Priority != nil && *ability.Priority == targetPriority
+	})
+	if len(abilities) == 0 {
+		return nil, nil
+	}
+	// Randomly choose one
+	weightSum := uint(0)
+	for _, ability_ := range abilities {
+		weightSum += ability_.Weight + 10
+	}
+	weight := common.GetRandomInt(int(weightSum))
+	for _, ability_ := range abilities {
+		weight -= int(ability_.Weight) + 10
+		if weight <= 0 {
+			channel.Id = ability_.ChannelId
+			break
+		}
+	}
+	err := DB.First(&channel, "id = ?", channel.Id).Error
 	return &channel, err
 }
 

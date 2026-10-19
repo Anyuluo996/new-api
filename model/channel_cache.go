@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/logger"
 	kitdto "github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/QuantumNous/new-api/setting/model_route_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 )
 
@@ -78,6 +79,8 @@ func InitChannelCache() {
 		}
 	}
 
+	ExpandModelRoutes(newGroup2model2channels, newChannelId2channel)
+
 	channelSyncLock.Lock()
 	group2model2channels = newGroup2model2channels
 	//channelsIDM = newChannelId2channel
@@ -122,6 +125,9 @@ func GetRandomSatisfiedChannel(
 ) (*Channel, error) {
 	// if memory cache is disabled, get channel directly from database
 	if !common.MemoryCacheEnabled {
+		if route, ok := model_route_setting.FindModelRoute(model); ok {
+			return GetChannelForRoute(group, route, retry, filters)
+		}
 		return GetChannel(group, model, retry, filters)
 	}
 
