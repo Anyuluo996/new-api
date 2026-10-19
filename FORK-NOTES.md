@@ -32,7 +32,8 @@
 一个对外模型名(别名)可映射到多个真实模型(可限定渠道标签),跨多渠道复用既有优先级/权重/重试机制。
 
 - **配置**: option `model_route_setting.routes`(JSON 数组,经 `setting/config` 注册;`GET/PUT /api/option/` 读写,校验挂 `validateOptionValue`,更新后 `handleConfigUpdate` 重建渠道缓存)
-- **结构**: `[{name, targets:[{model, tag?}], enabled, remark}]`;targets 自上而下匹配,`tag` 过滤渠道;别名不得与自身互指、不得指向其他别名(单层展开),重复别名拒绝
+- **结构**: `[{name, targets:[{model, tag?, weight?}], enabled, remark}]`;targets 自上而下匹配,`tag` 过滤渠道;`weight` 显式替换该目标参与渠道的自身权重参与加权随机(不设则用渠道权重,内存缓存与 DB 兜底两路径一致);别名不得与自身互指、不得指向其他别名(单层展开),重复别名拒绝
+- **测试**: `GET /api/model_route/test?name=`(AdminAuth,PAT scope `channel:read`)干跑解析:各目标命中渠道数 + 渠道列表(生效权重/改写目标/优先级/启停),不发真实请求;WebUI 每条路由行有测试按钮
 - **选择**: `model/model_route.go` `ExpandModelRoutes` 在 `InitChannelCache` 构建时把别名注入 `group2model2channels`(该组已有同名真实模型则跳过);内存缓存关闭路径走 `model/ability.go` `GetChannelForRoute`(合并各目标模型 abilities,同渠道首目标优先)
 - **改写**: `SetupContextForSelectedChannel` 写入 `ContextKeyRoutedModel` = 命中目标(`ResolveModelRouteUpstream` 为纯函数:路由配置×渠道,两种缓存模式通用);`InitChannelMeta` 用其覆盖 `UpstreamModelName`;渠道级 model_mapping 在改写结果之上继续生效;重试时按新渠道重新解析
 - **计费**: `relay/helper/price.go` `ModelPriceHelper`/`ModelPriceHelperPerCall` 按改写名计价(别名无需配倍率,零配置即按真实模型价格);计费快照在 `PrepareRequestBilling` 一次生成,跨渠道重试沿用首次选中渠道目标的价格;消费日志 `ModelName` 仍记别名,真实模型在 admin 可见的 `other.upstream_model_name`

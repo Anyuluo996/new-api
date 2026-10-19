@@ -335,6 +335,10 @@ func SetApiRouter(router *gin.Engine) {
 		requestDetailRoute.GET("/", middleware.AdminAuth(), controller.GetAllRequestDetails)
 		requestDetailRoute.GET("/:id", middleware.AdminAuth(), controller.GetRequestDetailBody)
 
+		// Fork: 模型路由干跑测试,仅管理员可见
+		modelRouteRoute := apiRouter.Group("/model_route")
+		modelRouteRoute.GET("/test", middleware.AdminAuth(), controller.TestModelRoute)
+
 		systemTaskRoute := apiRouter.Group("/system-task")
 		systemTaskRoute.Use(middleware.RootAuth())
 		{

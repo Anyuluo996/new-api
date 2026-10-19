@@ -31,7 +31,7 @@ func routeTestChannels() map[int]*Channel {
 func TestExpandModelRoutes(t *testing.T) {
 	channels := routeTestChannels()
 	routes := `[
-		{"name":"gpt-4o-all","targets":[{"model":"gpt-4o"},{"model":"gpt-4o-2024-11-20","tag":"cn"}],"enabled":true},
+		{"name":"gpt-4o-all","targets":[{"model":"gpt-4o"},{"model":"gpt-4o-2024-11-20","tag":"cn","weight":3}],"enabled":true},
 		{"name":"disabled-alias","targets":[{"model":"gpt-4o"}],"enabled":false}
 	]`
 	setTestModelRoutes(t, routes)
@@ -41,7 +41,7 @@ func TestExpandModelRoutes(t *testing.T) {
 		"other":   {"gpt-4o": {1}, "gpt-4o-all": {2}},
 	}
 
-	ExpandModelRoutes(groups, channels)
+	weights := ExpandModelRoutes(groups, channels)
 
 	// Targets merge as [1 (gpt-4o), 3 (tagged gpt-4o-2024-11-20)] and the
 	// priority sort puts channel 3 (p20) before channel 1 (p10).
@@ -50,6 +50,27 @@ func TestExpandModelRoutes(t *testing.T) {
 	assert.Equal(t, []int{2}, groups["other"]["gpt-4o-all"], "groups where the alias exists as a real model stay untouched")
 	_, ok := groups["default"]["disabled-alias"]
 	assert.False(t, ok, "disabled routes must not expand")
+
+	// Target weight overrides become per-alias channel weight entries.
+	assert.Equal(t, map[string]map[int]uint{
+		"gpt-4o-all": {3: 3},
+	}, weights)
+	// Install like InitChannelCache does, then check the accessor.
+	channelSyncLock.Lock()
+	routeChannelWeights = weights
+	channelSyncLock.Unlock()
+	t.Cleanup(func() {
+		channelSyncLock.Lock()
+		routeChannelWeights = nil
+		channelSyncLock.Unlock()
+	})
+	weight, ok := GetModelRouteChannelWeight("gpt-4o-all", 3)
+	assert.True(t, ok)
+	assert.Equal(t, uint(3), weight)
+	_, ok = GetModelRouteChannelWeight("gpt-4o-all", 1)
+	assert.False(t, ok, "targets without explicit weight keep channel weights")
+	_, ok = GetModelRouteChannelWeight("unknown-alias", 3)
+	assert.False(t, ok)
 }
 
 func TestResolveModelRouteUpstream(t *testing.T) {

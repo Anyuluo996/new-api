@@ -12,11 +12,18 @@ import (
 // ModelRoutesOptionKey is the option key holding the serialized route list.
 const ModelRoutesOptionKey = "model_route_setting.routes"
 
+// maxTargetWeight bounds per-target weight so weighted selection sums cannot
+// overflow.
+const maxTargetWeight = 1_000_000
+
 // ModelRouteTarget is one routing destination: a real model name served by
-// channels, optionally restricted to channels carrying a tag.
+// channels, optionally restricted to channels carrying a tag. Weight, when
+// set, replaces the participating channels' own weight during alias
+// selection (0 keeps channel weights).
 type ModelRouteTarget struct {
-	Model string `json:"model"`
-	Tag   string `json:"tag,omitempty"`
+	Model  string `json:"model"`
+	Tag    string `json:"tag,omitempty"`
+	Weight uint   `json:"weight,omitempty"`
 }
 
 // ModelRoute publishes one alias model name. A request for Name is channel
@@ -48,6 +55,17 @@ func GetModelRoutes() []ModelRoute {
 func FindModelRoute(name string) (ModelRoute, bool) {
 	for _, route := range routeConfig.Routes {
 		if route.Enabled && route.Name == name {
+			return route, true
+		}
+	}
+	return ModelRoute{}, false
+}
+
+// GetModelRouteByName returns the route with the given alias regardless of
+// enabled state, for the dry-run test endpoint.
+func GetModelRouteByName(name string) (ModelRoute, bool) {
+	for _, route := range routeConfig.Routes {
+		if route.Name == name {
 			return route, true
 		}
 	}
@@ -86,6 +104,9 @@ func ValidateRoutes(routes []ModelRoute) error {
 			}
 			if strings.TrimSpace(target.Model) == name {
 				return fmt.Errorf("model route %s cannot target itself", name)
+			}
+			if target.Weight > maxTargetWeight {
+				return fmt.Errorf("model route %s target weight %d exceeds the limit %d", name, target.Weight, maxTargetWeight)
 			}
 		}
 	}

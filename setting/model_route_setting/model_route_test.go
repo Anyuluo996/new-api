@@ -45,6 +45,14 @@ func TestValidateRoutesJSON(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "itself a route name")
 
+	weightOverLimit := `[{"name":"a","targets":[{"model":"gpt-4o","weight":1000001}],"enabled":true}]`
+	err = ValidateRoutesJSON(weightOverLimit)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exceeds the limit")
+
+	weightOk := `[{"name":"a","targets":[{"model":"gpt-4o","weight":3}],"enabled":true}]`
+	require.NoError(t, ValidateRoutesJSON(weightOk))
+
 	err = ValidateRoutesJSON("not-json")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "must be a JSON array")

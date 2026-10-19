@@ -161,6 +161,10 @@ func filterRouteAbilities(abilities []Ability, route model_route_setting.ModelRo
 				continue
 			}
 			seen[ability.ChannelId] = true
+			// Fork: 模型路由——目标显式权重替换渠道自身权重参与加权随机
+			if target.Weight > 0 {
+				ability.Weight = target.Weight
+			}
 			merged = append(merged, ability)
 		}
 	}

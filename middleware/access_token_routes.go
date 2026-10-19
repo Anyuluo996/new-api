@@ -253,6 +253,9 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"GET /api/request_detail/":    accessTokenScopeRule("log:read"),
 	"GET /api/request_detail/:id": accessTokenScopeRule("log:read"),
 
+	// router/api-router.go: /api/model_route (Fork: 模型路由测试)
+	"GET /api/model_route/test": accessTokenScopeRule("channel:read"),
+
 	// router/api-router.go: /api/group, /api/prefill_group
 	"GET /api/group/":               accessTokenScopeRule("group:read"),
 	"GET /api/prefill_group/":       accessTokenScopeRule("group:read"),

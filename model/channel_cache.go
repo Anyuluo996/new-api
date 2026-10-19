@@ -79,10 +79,11 @@ func InitChannelCache() {
 		}
 	}
 
-	ExpandModelRoutes(newGroup2model2channels, newChannelId2channel)
+	newRouteChannelWeights := ExpandModelRoutes(newGroup2model2channels, newChannelId2channel)
 
 	channelSyncLock.Lock()
 	group2model2channels = newGroup2model2channels
+	routeChannelWeights = newRouteChannelWeights
 	//channelsIDM = newChannelId2channel
 	for i, channel := range newChannelId2channel {
 		if channel.ChannelInfo.IsMultiKey {
@@ -173,13 +174,21 @@ func GetRandomSatisfiedChannel(
 	}
 	targetPriority := int64(sortedUniquePriorities[retry])
 
+	// Fork: 模型路由——别名命中的渠道按路由目标的权重设置参与加权随机(未配置则用渠道自身权重)
+	routeWeight := func(channel *Channel) int {
+		if weight, ok := GetModelRouteChannelWeight(model, channel.Id); ok {
+			return int(weight)
+		}
+		return channel.GetWeight()
+	}
+
 	// get the priority for the given retry number
 	var sumWeight = 0
 	var targetChannels []*Channel
 	for _, channelId := range channels {
 		if channel, ok := channelsIDM[channelId]; ok {
 			if channel.GetPriority() == targetPriority {
-				sumWeight += channel.GetWeight()
+				sumWeight += routeWeight(channel)
 				targetChannels = append(targetChannels, channel)
 			}
 		} else {
@@ -213,7 +222,7 @@ func GetRandomSatisfiedChannel(
 
 	// Find a channel based on its weight
 	for _, channel := range targetChannels {
-		randomWeight -= channel.GetWeight()*smoothingFactor + smoothingAdjustment
+		randomWeight -= routeWeight(channel)*smoothingFactor + smoothingAdjustment
 		if randomWeight < 0 {
 			return channel, nil
 		}
