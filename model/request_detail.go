@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 
@@ -46,6 +47,10 @@ func RecordRequestDetail(detail *RequestDetail) {
 	if common.UsingLogDatabase(common.DatabaseTypeClickHouse) {
 		return
 	}
+	// MySQL 会拒绝含非法 UTF-8 序列的写入(截断切在多字节字符中间、或客户端发来坏字节),
+	// 直接 1366 丢整条记录;非法字节替换为 U+FFFD 保住记录。
+	detail.RequestBody = strings.ToValidUTF8(detail.RequestBody, "\uFFFD")
+	detail.ResponseBody = strings.ToValidUTF8(detail.ResponseBody, "\uFFFD")
 	if err := LOG_DB.Create(detail).Error; err != nil {
 		common.SysError(common.LogText("failed to record request detail: %s", err.Error()))
 	}
