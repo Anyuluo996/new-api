@@ -1,8 +1,8 @@
 # Fork 说明(自用构建)
 
 上游: https://github.com/QuantumNous/new-api
-基础标签: `v1.0.0-rc.44`(与 wo4 部署版本一致)
-分支: `custom/rc44-gemini-embed-usage`
+基础标签: `v1.0.0-rc.45`(main 至 rc.45 后 4 个修复提交,2026-10-20 合入)
+分支: `custom/rc45-gemini-embed-usage`
 
 ## 改动内容
 
@@ -10,6 +10,7 @@
 原生 `:embedContent` 响应含 `usageMetadata.promptTokenCount` 时优先采用,替代原实现中的本地文本预计数。
 背景:纯图片嵌入请求无文本可本地计数,原实现恒记 0;PR #1537 的"Gemini 不返回 Embedding 统计"前提已过时。
 `batchEmbedContents` 上游无 usageMetadata,回退原逻辑。
+rc.45 上游仍未修,补丁保留(2026-10-20 复查)。
 
 ## Fork 功能:请求详情日志(2026-10-16 新增)
 
@@ -44,7 +45,7 @@
 ## 构建与部署
 
 - 推送 `custom/**` 分支或手动触发 `Build custom image` workflow
-- 产物: `ghcr.io/anyuluo996/new-api:rc44-gemini-embed-usage` + Release 附件镜像 tar.gz(docker load 兜底)
+- 产物: `ghcr.io/anyuluo996/new-api:rc45-gemini-embed-usage` + Release 附件镜像 tar.gz(docker load 兜底)
 - wo4: `/root/new-api/docker-compose.yml` 的 image 字段指向上述镜像
 
 ## 升级到新上游版本时
@@ -53,3 +54,12 @@
 2. 确认 `NativeGeminiEmbeddingHandler` 是否仍丢弃 usageMetadata(若上游已修,该补丁可弃)
 3. 重放 fork 提交(gemini 补丁 + workflow + 本文档),更新 workflow 中的 tag
 4. fork 自有文件(`model/request_detail.go`、`middleware/body_capture*.go`、`controller/request_detail.go`、`model/model_route.go`、`setting/model_route_setting/`)与上游无交集,rebase 冲突面主要在 `router/*`、`model/option.go`、`model/main.go`、`model/channel_cache.go`、`model/ability.go`、`middleware/distributor.go`、`relay/common/relay_info.go`、`relay/helper/price.go`、`controller/model.go`、`middleware/access_token_routes.go`、`service/system_task.go` 的少量插入行
+
+### rc.44→rc.45 合并记录(2026-10-20)
+
+合并 `upstream/main`(rc.45 + 4 个发布后修复),冲突与处置:
+
+- `model/ability.go`:上游重写 `GetChannel`(选渠道逻辑内联回函数体,并新增 DeepSeek `@` 修饰符回退 `ratio_setting.RoutingMatchModelName`)。处置:保留上游回退逻辑,fork 抽取的 `selectChannelFromAbilities` helper 继续作为 GetChannel 尾部与 `GetChannelForRoute` 的共用选择器(语义与上游内联版等价)
+- `relay/channel/api_request.go`:双方各自改了 constant 包导入别名(fork `rootconstant` / 上游 `appconstant`),统一用上游 `appconstant`,fork 的 `ContextKeyUpstreamLatencyMs` 打点两处引用随之改名
+- 6 个 `web/src/i18n/locales/*.json`:双方在同一字母序位置各插入一个 key,union 双保留
+- `model/ability.go` 的 `GetChannelForRoute`(缓存关闭路径)未加 @ 修饰符回退:路由目标是真实模型名,别名场景不适用,暂不处理

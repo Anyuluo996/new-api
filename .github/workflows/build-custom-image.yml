@@ -33,25 +33,25 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/anyuluo996/new-api:rc44-gemini-embed-usage
+          tags: ghcr.io/anyuluo996/new-api:rc45-gemini-embed-usage
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Load image and export tarball
         run: |
           docker buildx build --platform linux/amd64 --load \
-            -t ghcr.io/anyuluo996/new-api:rc44-gemini-embed-usage .
-          docker save ghcr.io/anyuluo996/new-api:rc44-gemini-embed-usage | gzip > new-api-image-amd64.tar.gz
+            -t ghcr.io/anyuluo996/new-api:rc45-gemini-embed-usage .
+          docker save ghcr.io/anyuluo996/new-api:rc45-gemini-embed-usage | gzip > new-api-image-amd64.tar.gz
           du -sh new-api-image-amd64.tar.gz
 
       - name: Upload image tarball to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: custom-rc44-gemini-embed-usage
-          name: custom-rc44-gemini-embed-usage
+          tag_name: custom-rc45-gemini-embed-usage
+          name: custom-rc45-gemini-embed-usage
           body: |
-            自用构建:new-api v1.0.0-rc.44 + gemini 原生 embedContent usageMetadata 统计修复
-            - 镜像: `ghcr.io/anyuluo996/new-api:rc44-gemini-embed-usage`
+            自用构建:new-api v1.0.0-rc.45 + gemini 原生 embedContent usageMetadata 统计修复
+            - 镜像: `ghcr.io/anyuluo996/new-api:rc45-gemini-embed-usage`
             - 兜底: 下载 new-api-image-amd64.tar.gz 后 `docker load`
           files: new-api-image-amd64.tar.gz
           overwrite_files: true
