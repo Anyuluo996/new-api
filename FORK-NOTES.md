@@ -1,8 +1,8 @@
 # Fork 说明(自用构建)
 
 上游: https://github.com/QuantumNous/new-api
-基础标签: `v1.0.0-rc.45`(main 至 rc.45 后 4 个修复提交,2026-10-20 合入)
-分支: `custom/rc45-gemini-embed-usage`
+基础标签: `v1.0.0-rc.47`(upstream/main 至 34003e9c2,rc.47 后 6 个修复提交,2026-10-26 合入)
+分支: `custom/rc47-gemini-embed-usage`
 
 ## 改动内容
 
@@ -10,7 +10,7 @@
 原生 `:embedContent` 响应含 `usageMetadata.promptTokenCount` 时优先采用,替代原实现中的本地文本预计数。
 背景:纯图片嵌入请求无文本可本地计数,原实现恒记 0;PR #1537 的"Gemini 不返回 Embedding 统计"前提已过时。
 `batchEmbedContents` 上游无 usageMetadata,回退原逻辑。
-rc.45 上游仍未修,补丁保留(2026-10-20 复查)。
+rc.47 上游仍未修,补丁保留(2026-10-26 复查)。
 
 ## Fork 功能:请求详情日志(2026-10-16 新增)
 
@@ -45,7 +45,7 @@ rc.45 上游仍未修,补丁保留(2026-10-20 复查)。
 ## 构建与部署
 
 - 推送 `custom/**` 分支或手动触发 `Build custom image` workflow
-- 产物: `ghcr.io/anyuluo996/new-api:rc45-gemini-embed-usage` + Release 附件镜像 tar.gz(docker load 兜底)
+- 产物: `ghcr.io/anyuluo996/new-api:rc47-gemini-embed-usage` + Release 附件镜像 tar.gz(docker load 兜底)
 - wo4: `/root/new-api/docker-compose.yml` 的 image 字段指向上述镜像
 
 ## 升级到新上游版本时
@@ -63,3 +63,13 @@ rc.45 上游仍未修,补丁保留(2026-10-20 复查)。
 - `relay/channel/api_request.go`:双方各自改了 constant 包导入别名(fork `rootconstant` / 上游 `appconstant`),统一用上游 `appconstant`,fork 的 `ContextKeyUpstreamLatencyMs` 打点两处引用随之改名
 - 6 个 `web/src/i18n/locales/*.json`:双方在同一字母序位置各插入一个 key,union 双保留
 - `model/ability.go` 的 `GetChannelForRoute`(缓存关闭路径)未加 @ 修饰符回退:路由目标是真实模型名,别名场景不适用,暂不处理
+
+### rc.45→rc.47 合并记录(2026-10-26)
+
+合并 `upstream/main`(rc.47 + 6 个发布后修复,34003e9c2,共 44 个提交),冲突与处置:
+
+- `relay/channel/api_request.go`:上游把 Header Override 重构为 `ApplyHeaderOverride(info, c, req)` 并移入 `DoApiRequest`/`DoFormRequest` 内部(`SetupRequestHeader` 之后调用),fork 残留的 `applyHeaderOverrideToRequest(req, headerOverride)` 直调删除;fork 的 `upstreamStart := time.Now()` 耗时打点保留(两处)
+- 6 个 `web/src/i18n/locales/*.json`:同字母序位置双方各插 key,union 双保留(合并后 key 数 = fork ∪ upstream,已校验)
+- `model/ability.go`、`relay/helper/price.go`、`relay/common/relay_info.go`、`middleware/distributor.go` 等其余冲突面自动合并,无手工处置
+- 上游重点变更:Go 1.26.10(CVE-2026-111943)、scoped access tokens 替换 dashboard access token、admin 用户管理 step-up 验证、prompt cache 计费修正(#7965/#7909/#8010)、Claude 流式保活与 Responses 断连误报修复、新增 `tokenkit` 子模块(Dockerfile 构建需 checkout)
+- 验证:`go build ./...`、`cd relaykit && GOWORK=off go build ./...`、`go vet` relay/channel+middleware+model 通过;fork 功能测试(body_capture/request_detail/model_route)通过;`relay/channel` 整包测试中 `TestUpstreamGetBody_HTTP2CannotRetryWithoutGetBody` 在 Windows 本地偶发失败(wsarecv 连接复位),合并前 rc45 分支同样复现,系平台 flake 与合并无关,CI(Linux)不受影响
